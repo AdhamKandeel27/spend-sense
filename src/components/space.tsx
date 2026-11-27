@@ -95,21 +95,20 @@ export function DeckStrip({
         const pct = Math.round(share * 100);
         const key = it.id ?? "none";
         const dim = activeId && activeId !== key;
-        // Each chip shows as much as its width allows: name, code, share. A code is never
-        // clipped to one letter; below two characters' width the chip is pure colour.
-        const nameClass = share > 0.15 ? "block" : share > 0.07 ? "hidden sm:block" : "hidden";
-        const codeClass = share > 0.075 ? "inline" : share > 0.035 ? "hidden sm:inline" : "hidden";
-        const pctClass = share > 0.3 ? "inline" : share > 0.11 ? "hidden sm:inline" : "hidden";
+        // Each chip is a size container: the name, code and share appear only when the
+        // chip is wide enough to show them whole. Nothing is ever truncated mid-word.
         const content = (
           <>
-            <span className={`truncate text-[0.6875rem] leading-tight font-semibold ${nameClass}`}>{it.name}</span>
-            <span className="chip-code mt-auto overflow-hidden whitespace-nowrap opacity-85">
-              <span className={codeClass}>{chipCode(it.name)}</span>
-              <span className={pctClass}> · {pct}%</span>
+            <span className={`hidden text-[0.6875rem] leading-tight font-semibold whitespace-nowrap ${fitClass(it.name.length * 6.4)}`}>
+              {it.name}
+            </span>
+            <span className="chip-code mt-auto whitespace-nowrap opacity-85">
+              <span className={`hidden ${fitClass(18)}`}>{chipCode(it.name)}</span>
+              <span className={`hidden ${fitClass(18 + (String(pct).length + 4) * 6.6)}`}> · {pct}%</span>
             </span>
           </>
         );
-        const className = `deck-chip flex min-w-3 flex-col justify-between overflow-hidden p-1.5 transition-opacity duration-200 ${dim ? "opacity-30" : ""}`;
+        const className = `deck-chip @container flex min-w-3 flex-col justify-between overflow-hidden p-1.5 transition-opacity duration-200 ${dim ? "opacity-30" : ""}`;
         const style = { flex: `${Math.max(share, 0.015)} 1 0`, background: c.bg, color: c.fg, animationDelay: `${i * 45}ms` };
         const title = `${it.name}: ${formatAmount(it.total)} (${pct}%)`;
         return interactive ? (
@@ -133,6 +132,24 @@ export function DeckStrip({
       })}
     </div>
   );
+}
+
+/**
+ * Container-query class that reveals an element once the chip's content box is at
+ * least `px` wide. Listed literally so Tailwind generates every bucket.
+ */
+const FIT_CLASSES = [
+  "@min-[20px]:inline", "@min-[30px]:inline", "@min-[40px]:inline", "@min-[50px]:inline",
+  "@min-[60px]:inline", "@min-[70px]:inline", "@min-[80px]:inline", "@min-[90px]:inline",
+  "@min-[100px]:inline", "@min-[110px]:inline", "@min-[120px]:inline", "@min-[130px]:inline",
+  "@min-[140px]:inline", "@min-[150px]:inline", "@min-[160px]:inline", "@min-[180px]:inline",
+  "@min-[200px]:inline", "@min-[240px]:inline",
+];
+const FIT_SIZES = [20, 30, 40, 50, 60, 70, 80, 90, 100, 110, 120, 130, 140, 150, 160, 180, 200, 240];
+
+function fitClass(px: number) {
+  const i = FIT_SIZES.findIndex((s) => s >= px);
+  return i === -1 ? "" : FIT_CLASSES[i];
 }
 
 export function DeckLegend({ items, currency, limit = 4 }: { items: Breakdown[]; currency: string; limit?: number }) {
