@@ -21,6 +21,11 @@ const schema = z.object({
     .default("false")
     .transform((v) => v === "true"),
   UPLOAD_DIR: z.string().default("./uploads"),
+  /** Extra origins allowed to sign in, e.g. http://192.168.1.20:3000 for your phone on Wi-Fi. */
+  TRUSTED_ORIGINS: z
+    .string()
+    .default("")
+    .transform((v) => v.split(",").map((s) => s.trim()).filter(Boolean)),
 });
 
 const parsed = schema.parse(process.env);
