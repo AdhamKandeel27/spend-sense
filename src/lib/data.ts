@@ -1,5 +1,5 @@
 import "server-only";
-import { and, asc, count, desc, eq, gte, ilike, inArray, isNull, lte, or, sql, sum } from "drizzle-orm";
+import { and, asc, count, desc, eq, gte, ilike, inArray, isNull, lt, lte, or, sql, sum } from "drizzle-orm";
 import { notFound } from "next/navigation";
 import { db } from "@/db";
 import { attachments, categories, purchases, rooms, spaces, vendors } from "@/db/schema";
@@ -65,6 +65,21 @@ export async function getSpaceOptions(spaceId: string) {
   return { space, categories: cats, rooms: rms, vendors: vnds };
 }
 
+/** The space's position among the owner's spaces (1-based), shown as its chip code "SPACE 01". */
+async function getSpaceNumber(space: { id: string; ownerId: string; createdAt: Date }) {
+  const [{ n }] = await db
+    .select({ n: count() })
+    .from(spaces)
+    // Strictly earlier spaces + 1. (JS dates carry milliseconds, Postgres microseconds,
+    // so "<= own createdAt" would miss the space itself.)
+    .where(and(eq(spaces.ownerId, space.ownerId), isNull(spaces.archivedAt), lt(spaces.createdAt, space.createdAt)));
+  return n + 1;
+}
+
+export function spaceCode(n: number) {
+  return `SPACE ${String(n).padStart(2, "0")}`;
+}
+
 /** How many purchases use each category / room (for settings). */
 export async function getUsageCounts(spaceId: string) {
   const space = await getSpace(spaceId);
@@ -120,9 +135,11 @@ export async function getSpaceOverview(spaceId: string) {
     .orderBy(desc(sql`coalesce(sum(${purchases.totalPaid}), 0)`));
 
   const recent = await listPurchaseCards(space.id, { limit: 8 });
+  const number = await getSpaceNumber(space);
 
   return {
     space,
+    number,
     count: totals.count,
     totalPaid: Number(totals.totalPaid),
     totalSaved: Number(totals.totalSaved),

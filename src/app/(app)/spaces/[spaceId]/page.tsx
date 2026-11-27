@@ -3,7 +3,7 @@ import Link from "next/link";
 import { Suspense } from "react";
 import { DeckLegend, DeckStrip, PurchaseTile, SpaceHeader, SpaceScope } from "@/components/space";
 import { ButtonLink, EmptyState } from "@/components/ui";
-import { getSpaceOverview } from "@/lib/data";
+import { getSpaceOverview, spaceCode } from "@/lib/data";
 import { formatAmount } from "@/lib/money";
 import { OverviewSkeleton } from "./skeletons";
 
@@ -24,7 +24,7 @@ async function Overview({ params }: { params: PageProps<"/spaces/[spaceId]">["pa
 
   return (
     <SpaceScope space={space}>
-      <SpaceHeader space={space} totalPaid={o.totalPaid} totalSaved={o.totalSaved} count={o.count} />
+      <SpaceHeader space={space} code={spaceCode(o.number)} totalPaid={o.totalPaid} totalSaved={o.totalSaved} count={o.count} />
       <main className="pb-shell mx-auto w-full max-w-6xl px-5 lg:px-10">
         {o.count === 0 ? (
           <div className="pt-8">

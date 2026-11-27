@@ -140,7 +140,7 @@ export function PurchaseForm({
       {/* ---------------- Media ---------------- */}
       <div className="flex flex-col gap-6 lg:sticky lg:top-8 lg:self-start">
         <section aria-labelledby="photos-label">
-          <h2 id="photos-label" className="label mb-2.5 text-ink-2">
+          <h2 id="photos-label" className="mb-2 text-[0.8125rem] font-semibold text-ink-2">
             Photo of the item
           </h2>
           <MediaGrid
@@ -157,7 +157,7 @@ export function PurchaseForm({
         </section>
 
         <section aria-labelledby="receipts-label">
-          <h2 id="receipts-label" className="label mb-2.5 text-ink-2">
+          <h2 id="receipts-label" className="mb-2 text-[0.8125rem] font-semibold text-ink-2">
             Receipt or invoice
           </h2>
           {(keptReceipts.length > 0 || receipts.length > 0) && (

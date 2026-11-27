@@ -1,4 +1,5 @@
-import { ImageOff, ReceiptText, Settings2 } from "lucide-react";
+import { ReceiptText, Settings2 } from "lucide-react";
+import { Thumb } from "@/components/thumb";
 import Link from "next/link";
 import type { CSSProperties, ReactNode } from "react";
 import type { Breakdown, PurchaseCard } from "@/lib/data";
@@ -20,25 +21,28 @@ export function SpaceHeader({
   totalPaid,
   totalSaved,
   count,
+  code,
   label = "Spent so far",
 }: {
   space: SpaceLike;
   totalPaid: number;
   totalSaved: number;
   count: number;
+  code: string;
   label?: string;
 }) {
   return (
     <header className="relative bg-[var(--space-bg)] px-5 pt-[max(1.5rem,env(safe-area-inset-top))] pb-6 text-[var(--space-fg)] lg:px-10 lg:pt-10 lg:pb-8">
       <div className="mx-auto max-w-6xl">
-        <div className="flex items-center justify-between gap-4">
-          <Link href="/spaces" className="label truncate hover:underline">
+        <div className="flex min-h-10 items-center gap-3">
+          <Link href="/spaces" className="label min-w-0 truncate hover:underline">
             {space.name}
           </Link>
+          <span className="chip-code shrink-0 opacity-75">{code}</span>
           <Link
             href={`/spaces/${space.id}/settings`}
             aria-label="Space settings"
-            className="-mr-2 grid size-10 place-items-center opacity-80 hover:opacity-100 lg:hidden"
+            className="-mr-2 ml-auto grid size-10 shrink-0 place-items-center opacity-80 hover:opacity-100 lg:hidden"
           >
             <Settings2 size={20} aria-hidden />
           </Link>
@@ -91,14 +95,16 @@ export function DeckStrip({
         const pct = Math.round(share * 100);
         const key = it.id ?? "none";
         const dim = activeId && activeId !== key;
-        // Phones get the code only unless the chip is wide; names and shares join as width allows.
-        const nameClass = share > 0.3 ? "block" : share > 0.09 ? "hidden sm:block" : "hidden";
-        const pctClass = share > 0.3 ? "inline" : share > 0.12 ? "hidden sm:inline" : "hidden";
+        // Each chip shows as much as its width allows: name, code, share. A code is never
+        // clipped to one letter; below two characters' width the chip is pure colour.
+        const nameClass = share > 0.15 ? "block" : share > 0.07 ? "hidden sm:block" : "hidden";
+        const codeClass = share > 0.075 ? "inline" : share > 0.035 ? "hidden sm:inline" : "hidden";
+        const pctClass = share > 0.3 ? "inline" : share > 0.11 ? "hidden sm:inline" : "hidden";
         const content = (
           <>
             <span className={`truncate text-[0.6875rem] leading-tight font-semibold ${nameClass}`}>{it.name}</span>
-            <span className="chip-code mt-auto truncate opacity-85">
-              {share > 0.025 ? chipCode(it.name) : ""}
+            <span className="chip-code mt-auto overflow-hidden whitespace-nowrap opacity-85">
+              <span className={codeClass}>{chipCode(it.name)}</span>
               <span className={pctClass}> · {pct}%</span>
             </span>
           </>
@@ -153,21 +159,7 @@ export function DeckLegend({ items, currency, limit = 4 }: { items: Breakdown[];
   );
 }
 
-export function Thumb({ photoId, alt, className = "" }: { photoId: string | null; alt: string; className?: string }) {
-  if (!photoId) {
-    return (
-      <div className={`grid place-items-center bg-[#e6e6e1] text-ink-3 ${className}`}>
-        <ImageOff size={22} strokeWidth={1.5} aria-hidden />
-        <span className="sr-only">No photo</span>
-      </div>
-    );
-  }
-  return (
-    // Private, authenticated files: served by our own route, so no next/image optimiser.
-    // eslint-disable-next-line @next/next/no-img-element
-    <img src={`/api/files/${photoId}?size=thumb`} alt={alt} loading="lazy" decoding="async" className={`bg-[#e6e6e1] object-cover ${className}`} />
-  );
-}
+export { Thumb };
 
 export function PurchaseTile({ spaceId, p, currency }: { spaceId: string; p: PurchaseCard; currency: string }) {
   const c = chipColor(p.categoryId ? p.categoryColor : -1);
@@ -175,9 +167,9 @@ export function PurchaseTile({ spaceId, p, currency }: { spaceId: string; p: Pur
   return (
     <Link
       href={`/spaces/${spaceId}/purchases/${p.id}`}
-      className="group flex flex-col border border-line bg-card transition-[border-color,box-shadow] duration-200 hover:border-line-strong hover:shadow-[var(--shadow-lift)]"
+      className="group flex w-full flex-col border border-line bg-card transition-[border-color,box-shadow] duration-200 hover:border-line-strong hover:shadow-[var(--shadow-lift)]"
     >
-      <div className="relative">
+      <div className="relative w-full">
         <Thumb photoId={p.photoId} alt={p.name} className="aspect-square w-full" />
         {pct != null && (
           <span className="num absolute top-2 left-2 bg-ochre px-1.5 py-0.5 text-[0.75rem] font-bold text-ink">−{pct}%</span>

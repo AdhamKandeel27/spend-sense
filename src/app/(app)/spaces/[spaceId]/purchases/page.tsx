@@ -1,4 +1,4 @@
-import { Download, ReceiptText } from "lucide-react";
+import { ArrowLeft, Download, ReceiptText } from "lucide-react";
 import type { Metadata } from "next";
 import Link from "next/link";
 import { Suspense } from "react";
@@ -56,10 +56,13 @@ async function Purchases({ params, searchParams }: Props) {
       <main className="pb-shell mx-auto w-full max-w-6xl px-5 pt-[max(1.25rem,env(safe-area-inset-top))] lg:px-10 lg:pt-10">
         <div className="flex items-end justify-between gap-3">
           <div className="min-w-0">
-            <Link href={`/spaces/${space.id}`} className="label block truncate text-[var(--space-bg)] hover:underline">
-              {space.name}
+            <Link
+              href={`/spaces/${space.id}`}
+              className="inline-flex max-w-full items-center gap-1.5 text-[0.875rem] font-semibold text-ink-2 hover:text-ink"
+            >
+              <ArrowLeft size={16} aria-hidden className="shrink-0" /> <span className="truncate">{space.name}</span>
             </Link>
-            <h1 className="mt-1 text-title font-extrabold">Purchases</h1>
+            <h1 className="mt-3 text-title font-extrabold">Purchases</h1>
           </div>
           <a
             href={exportHref}
@@ -111,7 +114,7 @@ async function Purchases({ params, searchParams }: Props) {
                 <li key={p.id}>
                   <Link
                     href={`/spaces/${space.id}/purchases/${p.id}`}
-                    className="grid grid-cols-[3.5rem_minmax(0,1fr)_auto] items-center gap-3 border-b border-line bg-card px-2 py-2 hover:bg-ground/60 sm:grid-cols-[3.5rem_minmax(0,2fr)_minmax(0,1fr)_minmax(0,1fr)_6rem_auto]"
+                    className="grid grid-cols-[3.5rem_minmax(0,1fr)_6.5rem] items-center gap-3 border-b border-line bg-card px-2 py-2 hover:bg-ground/60 sm:grid-cols-[3.5rem_minmax(0,2fr)_minmax(0,1fr)_minmax(0,1fr)_2rem_7rem]"
                   >
                     <Thumb photoId={p.photoId} alt="" className="size-14" />
                     <div className="min-w-0">

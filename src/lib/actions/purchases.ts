@@ -36,7 +36,7 @@ function parsePurchase(formData: FormData): { data?: Parsed; fieldErrors?: Recor
   const str = (k: string) => String(formData.get(k) ?? "").trim();
 
   const name = str("name");
-  if (!name) errors.name = "What did you buy?";
+  if (!name) errors.name = "Add a name so you can find it later, like “Carrara marble slabs”.";
   else if (name.length > 140) errors.name = "Keep the name under 140 characters.";
 
   const purchasedOn = str("purchasedOn") || new Date().toISOString().slice(0, 10);
