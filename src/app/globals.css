@@ -1,26 +1,188 @@
 @import "tailwindcss";
 
+/* ---------------------------------------------------------------------------
+   Spend Sense: the Fan Deck.
+   Chip-stock ground, white cards on hairlines, ink. Square corners everywhere
+   except the pill primary action. Colour comes from the chips (categories) and
+   from each space's own header chip.
+--------------------------------------------------------------------------- */
+
+@theme {
+  --color-ground: #f2f2ee;
+  --color-card: #ffffff;
+  --color-line: #deded8;
+  --color-line-strong: #c9c9c2;
+  --color-ink: #1b1e23;
+  --color-ink-2: #4d5158;
+  --color-ink-3: #686c73;
+  --color-ochre: #d69a2d;
+  --color-danger: #a3302a;
+  --color-danger-tint: #f6e7e5;
+  --color-ok: #2f6b45;
+
+  --font-sans: var(--font-archivo), ui-sans-serif, system-ui, sans-serif;
+  --font-mono: var(--font-jetbrains), ui-monospace, monospace;
+
+  /* Three-size scale (rank comes from weight and case), plus the display total. */
+  --text-label: 0.75rem;
+  --text-label--line-height: 1rem;
+  --text-body: 0.9375rem;
+  --text-body--line-height: 1.4rem;
+  --text-title: 1.25rem;
+  --text-title--line-height: 1.6rem;
+  --text-total: 2.75rem;
+  --text-total--line-height: 1;
+
+  --radius-pill: 999px;
+  --shadow-lift: 0 1px 2px rgb(27 30 35 / 0.06), 0 8px 24px -12px rgb(27 30 35 / 0.18);
+  --shadow-float: 0 2px 4px rgb(27 30 35 / 0.12), 0 12px 32px -8px rgb(27 30 35 / 0.35);
+
+  --ease-out-expo: cubic-bezier(0.16, 1, 0.3, 1);
+}
+
 :root {
-  --background: #ffffff;
-  --foreground: #171717;
+  /* Overridden per space by the space layout. */
+  --space-bg: #1f5a50;
+  --space-fg: #f2f2ee;
+  --space-accent: #d69a2d;
+  color-scheme: light;
 }
 
-@theme inline {
-  --color-background: var(--background);
-  --color-foreground: var(--foreground);
-  --font-sans: var(--font-geist-sans);
-  --font-mono: var(--font-geist-mono);
-}
-
-@media (prefers-color-scheme: dark) {
-  :root {
-    --background: #0a0a0a;
-    --foreground: #ededed;
-  }
+html {
+  -webkit-tap-highlight-color: transparent;
+  text-size-adjust: 100%;
 }
 
 body {
-  background: var(--background);
-  color: var(--foreground);
-  font-family: Arial, Helvetica, sans-serif;
+  background: var(--color-ground);
+  color: var(--color-ink);
+  font-family: var(--font-sans);
+  font-size: var(--text-body);
+  line-height: var(--text-body--line-height);
+  caret-color: var(--space-bg);
+}
+
+::selection {
+  background: var(--color-ochre);
+  color: var(--color-ink);
+}
+
+/* Browser surfaces carry the design too. */
+* {
+  scrollbar-width: thin;
+  scrollbar-color: var(--color-line-strong) transparent;
+}
+
+:focus-visible {
+  outline: 2px solid var(--color-ink);
+  outline-offset: 2px;
+}
+
+a {
+  text-underline-offset: 3px;
+  text-decoration-thickness: 1px;
+}
+
+.num {
+  font-variant-numeric: tabular-nums;
+  font-feature-settings: "tnum" 1, "lnum" 1;
+}
+
+.label {
+  font-size: var(--text-label);
+  line-height: var(--text-label--line-height);
+  font-weight: 600;
+  letter-spacing: 0.08em;
+  text-transform: uppercase;
+}
+
+.chip-code {
+  font-family: var(--font-mono);
+  font-size: 0.6875rem;
+  font-weight: 500;
+  letter-spacing: 0.02em;
+}
+
+/* Inputs: square, hairline, ink focus. */
+.field {
+  width: 100%;
+  min-height: 2.875rem;
+  background: var(--color-card);
+  border: 1px solid var(--color-line-strong);
+  padding: 0.625rem 0.75rem;
+  font: inherit;
+  color: inherit;
+  border-radius: 0;
+  transition: border-color 150ms var(--ease-out-expo), box-shadow 150ms var(--ease-out-expo);
+}
+.field::placeholder {
+  color: var(--color-ink-3);
+}
+.field:hover {
+  border-color: var(--color-ink-3);
+}
+.field:focus-visible,
+.field:focus {
+  outline: none;
+  border-color: var(--color-ink);
+  box-shadow: inset 0 0 0 1px var(--color-ink);
+}
+.field[aria-invalid="true"] {
+  border-color: var(--color-danger);
+  box-shadow: inset 0 0 0 1px var(--color-danger);
+}
+select.field {
+  appearance: none;
+  padding-right: 2.25rem;
+  background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='16' height='16' fill='none' stroke='%231b1e23' stroke-width='1.75' viewBox='0 0 24 24'%3E%3Cpath d='m6 9 6 6 6-6'/%3E%3C/svg%3E");
+  background-repeat: no-repeat;
+  background-position: right 0.75rem center;
+}
+input[type="date"].field {
+  min-width: 0;
+}
+
+/* The die-cut notch on chip headers. */
+.notch {
+  position: absolute;
+  right: 1.25rem;
+  bottom: -0.875rem;
+  width: 1.75rem;
+  height: 1.75rem;
+  border-radius: 999px;
+  background: var(--color-ground);
+}
+
+/* Room for the bottom tab bar + floating add button on phones. */
+.pb-shell {
+  padding-bottom: calc(9rem + env(safe-area-inset-bottom));
+}
+@media (min-width: 1024px) {
+  .pb-shell {
+    padding-bottom: 4rem;
+  }
+}
+
+/* One authored moment: the deck fans out when a space opens. */
+@keyframes deck-fan {
+  from {
+    transform: scaleX(0.001);
+  }
+  to {
+    transform: scaleX(1);
+  }
+}
+.deck-chip {
+  transform-origin: left center;
+  animation: deck-fan 700ms var(--ease-out-expo) both;
+}
+
+@media (prefers-reduced-motion: reduce) {
+  *,
+  *::before,
+  *::after {
+    animation-duration: 1ms !important;
+    animation-delay: 0ms !important;
+    transition-duration: 1ms !important;
+  }
 }

@@ -12,6 +12,10 @@ const eslintConfig = defineConfig([
     "out/**",
     "build/**",
     "next-env.d.ts",
+    // Local tooling, not app code.
+    ".claude/**",
+    ".cursor/**",
+    ".impeccable/**",
   ]),
 ]);
 
