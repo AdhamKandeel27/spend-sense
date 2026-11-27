@@ -85,7 +85,7 @@ export function AppNav() {
       {showAdd && (
         <Link
           href={addHref}
-          className="fixed bottom-[calc(5rem+env(safe-area-inset-bottom))] left-1/2 z-40 inline-flex min-h-13 -translate-x-1/2 items-center gap-2 rounded-[var(--radius-pill)] bg-ink px-6 text-[0.9375rem] font-bold text-ground shadow-[var(--shadow-float)] transition-transform duration-150 active:scale-[0.98] lg:hidden"
+          className="fixed bottom-[calc(5rem+var(--foot-offset,0px)+env(safe-area-inset-bottom))] left-1/2 z-40 inline-flex min-h-13 -translate-x-1/2 items-center gap-2 rounded-[var(--radius-pill)] bg-ink px-6 text-[0.9375rem] font-bold text-ground shadow-[var(--shadow-float)] transition-transform duration-150 active:scale-[0.98] lg:hidden"
         >
           <Plus size={20} strokeWidth={2.5} aria-hidden />
           Add purchase
