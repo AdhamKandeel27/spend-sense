@@ -1,7 +1,7 @@
 # Spend Sense — local stack
 #
 #   docker compose up -d db          # just Postgres, for `pnpm dev`
-#   docker compose up -d --build     # Postgres + the production app on :3000
+#   docker compose up -d --build     # Postgres + the production app on :5000
 #
 services:
   db:
@@ -35,11 +35,11 @@ services:
       DATABASE_URL: postgres://${POSTGRES_USER:-spendsense}:${POSTGRES_PASSWORD:-spendsense}@db:5432/${POSTGRES_DB:-spendsense}
       UPLOAD_DIR: /data/uploads
       RUN_MIGRATIONS: "true"
-      BETTER_AUTH_URL: ${BETTER_AUTH_URL:-http://localhost:3000}
+      BETTER_AUTH_URL: ${BETTER_AUTH_URL:-http://localhost:5000}
       TRUSTED_ORIGINS: ${TRUSTED_ORIGINS:-}
       BETTER_AUTH_SECRET: ${BETTER_AUTH_SECRET:-}  # required — set it in .env (see README)
     ports:
-      - "${APP_PORT:-3000}:3000"
+      - "${APP_PORT:-5000}:3000"
     volumes:
       - uploads:/data/uploads
 

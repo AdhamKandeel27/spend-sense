@@ -42,7 +42,7 @@ Create `.env` in the project root:
 BETTER_AUTH_SECRET=paste-a-long-random-string-here
 
 # The address you open the app at.
-BETTER_AUTH_URL=http://localhost:3000
+BETTER_AUTH_URL=http://localhost:5000
 
 # Optional: other addresses allowed to sign in, comma-separated
 # (e.g. your PC's Wi-Fi address for using it from your phone).
@@ -58,7 +58,7 @@ ALLOW_SIGNUP=false
 docker compose up -d --build
 ```
 
-Open <http://localhost:3000>, choose **Create your account** (the first account becomes the owner, and sign-up then closes), and create your first space.
+Open <http://localhost:5000>, choose **Create your account** (the first account becomes the owner, and sign-up then closes), and create your first space.
 
 Data lives in two Docker volumes: `pgdata` for the database and `uploads` for photos and receipts. They survive restarts and rebuilds.
 
@@ -68,7 +68,7 @@ Data lives in two Docker volumes: `pgdata` for the database and `uploads` for ph
 pnpm install
 pnpm db:up        # Postgres in Docker on localhost:5434
 pnpm db:migrate   # create the tables
-pnpm dev          # http://localhost:3000
+pnpm dev          # http://localhost:5000
 ```
 
 In development the database URL defaults to the Compose database and uploads go to `./uploads`.
@@ -77,8 +77,8 @@ In development the database URL defaults to the Compose database and uploads go 
 
 1. Make sure your phone and PC are on the same Wi-Fi.
 2. Find your PC's local IP address (`ipconfig` → IPv4 Address, for example `192.168.1.20`).
-3. Add `TRUSTED_ORIGINS=http://192.168.1.20:3000` to `.env`, then run `docker compose up -d`.
-4. On the phone, open `http://192.168.1.20:3000`.
+3. Add `TRUSTED_ORIGINS=http://192.168.1.20:5000` to `.env`, then run `docker compose up -d`.
+4. On the phone, open `http://192.168.1.20:5000`.
 
 Taking photos and uploading work over plain `http` on your network. **Add to Home Screen as an app** needs HTTPS, which is what a later deployment with a domain provides. Until then you can still add a bookmark to the home screen.
 
