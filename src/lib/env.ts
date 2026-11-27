@@ -2,7 +2,9 @@ import "server-only";
 import path from "node:path";
 import { z } from "zod";
 
-const isProd = process.env.NODE_ENV === "production";
+// `next build` loads server modules without runtime secrets; validate strictly only when serving.
+const isBuild = process.env.NEXT_PHASE === "phase-production-build";
+const isProd = process.env.NODE_ENV === "production" && !isBuild;
 
 // Development falls back to the docker compose defaults so `pnpm dev` works
 // without a .env file. Production must provide real values.
