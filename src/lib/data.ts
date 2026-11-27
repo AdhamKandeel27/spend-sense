@@ -65,7 +65,20 @@ export async function getSpaceOptions(spaceId: string) {
   return { space, categories: cats, rooms: rms, vendors: vnds };
 }
 
-export type Breakdown = { id: string | null; name: string; color: number; total: number; count: number };
+/** How many purchases use each category / room (for settings). */
+export async function getUsageCounts(spaceId: string) {
+  const space = await getSpace(spaceId);
+  const [cats, rms] = await Promise.all([
+    db.select({ id: purchases.categoryId, n: count() }).from(purchases).where(eq(purchases.spaceId, space.id)).groupBy(purchases.categoryId),
+    db.select({ id: purchases.roomId, n: count() }).from(purchases).where(eq(purchases.spaceId, space.id)).groupBy(purchases.roomId),
+  ]);
+  return {
+    categories: new Map(cats.map((c) => [c.id, c.n])),
+    rooms: new Map(rms.map((r) => [r.id, r.n])),
+  };
+}
+
+export type Breakdown ={ id: string | null; name: string; color: number; total: number; count: number };
 
 export async function getSpaceOverview(spaceId: string) {
   const space = await getSpace(spaceId);
