@@ -1,0 +1,43 @@
+# dependencies
+node_modules/
+.pnpm-store/
+
+# next.js
+.next/
+out/
+next-env.d.ts
+
+# build
+dist/
+build/
+*.tsbuildinfo
+
+# env & secrets
+.env
+.env.*
+!.env.example
+
+# local data
+uploads/
+data/
+backups/
+
+# logs
+*.log
+npm-debug.log*
+pnpm-debug.log*
+
+# os / editors
+.DS_Store
+Thumbs.db
+.vscode/
+.idea/
+
+# local AI tooling (machine-specific)
+.cursor/
+.claude/
+.impeccable/config.local.json
+.impeccable/questions/
+.impeccable/mocks/
+.impeccable/review/
+.impeccable/build/
