@@ -1,0 +1,764 @@
+{
+  "schemaVersion": 2,
+  "generatedAt": "2026-11-27T13:17:20.773Z",
+  "title": "Design System: Spend Sense",
+  "extensions": {
+    "colorMeta": {
+      "ground": {
+        "role": "neutral",
+        "displayName": "Chip-Stock Ground",
+        "canonical": "#f2f2ee",
+        "tonalRamp": [
+          "#0b0b0b",
+          "#262625",
+          "#454543",
+          "#666664",
+          "#898987",
+          "#aeaeab",
+          "#d1d1ce",
+          "#eeeeed"
+        ]
+      },
+      "card": {
+        "role": "neutral",
+        "displayName": "Card White",
+        "canonical": "#ffffff",
+        "tonalRamp": [
+          "#0b0b0b",
+          "#262626",
+          "#454545",
+          "#666666",
+          "#898989",
+          "#aeaeae",
+          "#d1d1d1",
+          "#eeeeee"
+        ]
+      },
+      "line": {
+        "role": "neutral",
+        "displayName": "Hairline",
+        "canonical": "#deded8",
+        "tonalRamp": [
+          "#0b0b0b",
+          "#272725",
+          "#454542",
+          "#666663",
+          "#898985",
+          "#aeaea9",
+          "#d1d1cc",
+          "#efefec"
+        ]
+      },
+      "line-strong": {
+        "role": "neutral",
+        "displayName": "Strong Hairline",
+        "canonical": "#c9c9c2",
+        "tonalRamp": [
+          "#0b0b0a",
+          "#272724",
+          "#454542",
+          "#666662",
+          "#898984",
+          "#aeaea8",
+          "#d1d1cb",
+          "#efefeb"
+        ]
+      },
+      "photo-well": {
+        "role": "neutral",
+        "displayName": "Photo Well",
+        "canonical": "#e6e6e1",
+        "tonalRamp": [
+          "#0b0b0b",
+          "#262625",
+          "#454543",
+          "#666663",
+          "#898986",
+          "#aeaeaa",
+          "#d1d1cd",
+          "#efefec"
+        ]
+      },
+      "ink": {
+        "role": "primary",
+        "displayName": "Ink",
+        "canonical": "#1b1e23",
+        "tonalRamp": [
+          "#0a0b0d",
+          "#24272c",
+          "#42454a",
+          "#63666b",
+          "#87898d",
+          "#acaeb2",
+          "#cfd1d4",
+          "#eeeef0"
+        ]
+      },
+      "ink-hover": {
+        "role": "primary",
+        "displayName": "Ink Lifted",
+        "canonical": "#2c3038",
+        "tonalRamp": [
+          "#0a0b0e",
+          "#23262e",
+          "#41454d",
+          "#62666e",
+          "#868990",
+          "#abaeb4",
+          "#ced1d6",
+          "#edeef1"
+        ]
+      },
+      "ink-2": {
+        "role": "neutral",
+        "displayName": "Ink 2",
+        "canonical": "#4d5158",
+        "tonalRamp": [
+          "#0a0b0d",
+          "#24272c",
+          "#41454c",
+          "#62666d",
+          "#868990",
+          "#abaeb4",
+          "#ced1d6",
+          "#edeef1"
+        ]
+      },
+      "ink-3": {
+        "role": "neutral",
+        "displayName": "Ink 3",
+        "canonical": "#686c73",
+        "tonalRamp": [
+          "#0a0b0d",
+          "#24272b",
+          "#42454b",
+          "#62666d",
+          "#858990",
+          "#abaeb4",
+          "#ced1d7",
+          "#edeef1"
+        ]
+      },
+      "ochre": {
+        "role": "secondary",
+        "displayName": "Ochre",
+        "canonical": "#d69a2d",
+        "tonalRamp": [
+          "#130900",
+          "#362200",
+          "#5d3e00",
+          "#875d00",
+          "#b37e16",
+          "#dda23b",
+          "#fdc771",
+          "#ffeccf"
+        ]
+      },
+      "danger": {
+        "role": "status",
+        "displayName": "Danger",
+        "canonical": "#a3302a",
+        "tonalRamp": [
+          "#1d0201",
+          "#500002",
+          "#7f1715",
+          "#ab3b33",
+          "#cd665c",
+          "#ee9185",
+          "#febfb7",
+          "#fee9e6"
+        ]
+      },
+      "danger-tint": {
+        "role": "status",
+        "displayName": "Danger Tint",
+        "canonical": "#f6e7e5",
+        "tonalRamp": [
+          "#0c0b0b",
+          "#2a2525",
+          "#494343",
+          "#6c6463",
+          "#908785",
+          "#b7aba9",
+          "#dbcdcc",
+          "#f4eceb"
+        ]
+      },
+      "ok": {
+        "role": "status",
+        "displayName": "Ok",
+        "canonical": "#2f6b45",
+        "tonalRamp": [
+          "#020f06",
+          "#003015",
+          "#1a5130",
+          "#3b744f",
+          "#649774",
+          "#8ebb9b",
+          "#b5ddc0",
+          "#e2f4e7"
+        ]
+      },
+      "ok-tint": {
+        "role": "status",
+        "displayName": "Ok Tint",
+        "canonical": "#e7f0ea",
+        "tonalRamp": [
+          "#0b0b0b",
+          "#252725",
+          "#424644",
+          "#636764",
+          "#858b87",
+          "#a9b0ab",
+          "#cbd3ce",
+          "#ebf0ed"
+        ]
+      },
+      "chip-slate": {
+        "role": "secondary",
+        "displayName": "Slate (deck 1)",
+        "canonical": "#3b5a8e",
+        "tonalRamp": [
+          "#040b19",
+          "#0f254b",
+          "#294473",
+          "#486699",
+          "#6d8ab9",
+          "#95afda",
+          "#bbd2f9",
+          "#e6effe"
+        ]
+      },
+      "chip-brick": {
+        "role": "secondary",
+        "displayName": "Brick (deck 2)",
+        "canonical": "#b04a3a",
+        "tonalRamp": [
+          "#1a0402",
+          "#4d0501",
+          "#782519",
+          "#a44233",
+          "#ca6959",
+          "#ec9383",
+          "#ffbfb3",
+          "#fee9e5"
+        ]
+      },
+      "chip-ochre": {
+        "role": "secondary",
+        "displayName": "Ochre (deck 3)",
+        "canonical": "#d69a2d",
+        "tonalRamp": [
+          "#130900",
+          "#362200",
+          "#5d3e00",
+          "#875d00",
+          "#b37e16",
+          "#dda23b",
+          "#fdc771",
+          "#ffeccf"
+        ]
+      },
+      "chip-sage": {
+        "role": "secondary",
+        "displayName": "Sage (deck 4)",
+        "canonical": "#5b7f4e",
+        "tonalRamp": [
+          "#060e04",
+          "#162d0d",
+          "#324e27",
+          "#4f7143",
+          "#729566",
+          "#99b98e",
+          "#bedbb4",
+          "#e6f3e2"
+        ]
+      },
+      "chip-plum": {
+        "role": "secondary",
+        "displayName": "Plum (deck 5)",
+        "canonical": "#6b4a6e",
+        "tonalRamp": [
+          "#100811",
+          "#341c36",
+          "#563859",
+          "#79597c",
+          "#9b7d9e",
+          "#bfa3c1",
+          "#e0c8e2",
+          "#f5eaf6"
+        ]
+      },
+      "chip-teal": {
+        "role": "secondary",
+        "displayName": "Teal (deck 6)",
+        "canonical": "#2e7c8a",
+        "tonalRamp": [
+          "#000e11",
+          "#012c33",
+          "#034e59",
+          "#25717f",
+          "#5195a2",
+          "#7eb9c5",
+          "#a7dbe6",
+          "#ddf3f8"
+        ]
+      },
+      "chip-rust": {
+        "role": "secondary",
+        "displayName": "Rust (deck 7)",
+        "canonical": "#c2672b",
+        "tonalRamp": [
+          "#180600",
+          "#411900",
+          "#6f3000",
+          "#9c4d13",
+          "#c86e35",
+          "#ea9766",
+          "#ffc2a0",
+          "#ffeade"
+        ]
+      },
+      "chip-olive": {
+        "role": "secondary",
+        "displayName": "Olive (deck 8)",
+        "canonical": "#7c7a2e",
+        "tonalRamp": [
+          "#0d0c00",
+          "#2a2800",
+          "#4a4803",
+          "#6c6a21",
+          "#8f8d48",
+          "#b3b275",
+          "#d5d59e",
+          "#f0f1d8"
+        ]
+      },
+      "chip-rose": {
+        "role": "secondary",
+        "displayName": "Rose (deck 9)",
+        "canonical": "#b5577a",
+        "tonalRamp": [
+          "#17040b",
+          "#470c26",
+          "#6f2844",
+          "#9a4565",
+          "#c36788",
+          "#e691ad",
+          "#febbd0",
+          "#ffe8ee"
+        ]
+      },
+      "chip-graphite": {
+        "role": "secondary",
+        "displayName": "Graphite (deck 10)",
+        "canonical": "#4a4f57",
+        "tonalRamp": [
+          "#0a0b0e",
+          "#23272d",
+          "#41454d",
+          "#62666e",
+          "#858991",
+          "#aaaeb5",
+          "#cdd1d7",
+          "#edeef1"
+        ]
+      },
+      "chip-none": {
+        "role": "neutral",
+        "displayName": "Uncategorised",
+        "canonical": "#c9c9c2",
+        "tonalRamp": [
+          "#0b0b0a",
+          "#272724",
+          "#454542",
+          "#666662",
+          "#898984",
+          "#aeaea8",
+          "#d1d1cb",
+          "#efefeb"
+        ]
+      },
+      "space-deck-green": {
+        "role": "primary",
+        "displayName": "Deck Green (space 1)",
+        "canonical": "#1f5a50",
+        "tonalRamp": [
+          "#010e0b",
+          "#002e27",
+          "#165046",
+          "#3d7167",
+          "#66948a",
+          "#90b8af",
+          "#b7dad2",
+          "#e3f2ef"
+        ]
+      },
+      "space-navy": {
+        "role": "primary",
+        "displayName": "Navy (space 2)",
+        "canonical": "#233a63",
+        "tonalRamp": [
+          "#050b18",
+          "#112549",
+          "#2e456d",
+          "#50668c",
+          "#768aad",
+          "#9dafce",
+          "#c2d2ed",
+          "#e8effb"
+        ]
+      },
+      "space-oxblood": {
+        "role": "primary",
+        "displayName": "Oxblood (space 3)",
+        "canonical": "#6e2b2e",
+        "tonalRamp": [
+          "#180505",
+          "#480f14",
+          "#6f2c2f",
+          "#905152",
+          "#b27776",
+          "#d49e9d",
+          "#f3c3c2",
+          "#fee9e8"
+        ]
+      },
+      "space-aubergine": {
+        "role": "primary",
+        "displayName": "Aubergine (space 4)",
+        "canonical": "#4a2f4f",
+        "tonalRamp": [
+          "#100712",
+          "#331c38",
+          "#543a59",
+          "#755c79",
+          "#97809b",
+          "#baa6be",
+          "#dccadf",
+          "#f3ebf5"
+        ]
+      },
+      "space-deep-teal": {
+        "role": "primary",
+        "displayName": "Deep Teal (space 5)",
+        "canonical": "#1e4e5a",
+        "tonalRamp": [
+          "#020d11",
+          "#002c36",
+          "#1c4c58",
+          "#446d79",
+          "#6b909a",
+          "#94b4be",
+          "#bbd7df",
+          "#e5f1f5"
+        ]
+      },
+      "space-umber": {
+        "role": "primary",
+        "displayName": "Umber (space 6)",
+        "canonical": "#5a4128",
+        "tonalRamp": [
+          "#110904",
+          "#36210c",
+          "#583f26",
+          "#79614a",
+          "#9b8570",
+          "#beaa97",
+          "#dfcdbd",
+          "#f5ede6"
+        ]
+      },
+      "space-accent-gold": {
+        "role": "secondary",
+        "displayName": "Gold (space accent)",
+        "canonical": "#e3b04b",
+        "tonalRamp": [
+          "#110a01",
+          "#342300",
+          "#5a4000",
+          "#825f12",
+          "#ab812c",
+          "#d6a544",
+          "#f9c96e",
+          "#ffeccb"
+        ]
+      },
+      "space-accent-straw": {
+        "role": "secondary",
+        "displayName": "Straw (space accent)",
+        "canonical": "#e8c15a",
+        "tonalRamp": [
+          "#0f0a01",
+          "#322400",
+          "#564202",
+          "#7c631b",
+          "#a38533",
+          "#cda94b",
+          "#f2cd6a",
+          "#feedc3"
+        ]
+      }
+    },
+    "typographyMeta": {
+      "display": {
+        "displayName": "Display Total",
+        "purpose": "The space total in the header (3.5rem on desktop); steps down to 2.25rem on the detail price and 2rem on space cards."
+      },
+      "headline": {
+        "displayName": "Headline",
+        "purpose": "The purchase name on the detail page."
+      },
+      "title": {
+        "displayName": "Title",
+        "purpose": "Page titles and empty-state titles."
+      },
+      "body": {
+        "displayName": "Body",
+        "purpose": "All running text; working sizes 0.875rem and 0.8125rem for dense metadata."
+      },
+      "label": {
+        "displayName": "Label",
+        "purpose": "Uppercase section headings and the space name row in the header."
+      },
+      "chip-code": {
+        "displayName": "Chip Code",
+        "purpose": "Two-letter category codes and SPACE 01 codes only."
+      }
+    },
+    "shadows": [
+      {
+        "name": "lift",
+        "value": "0 1px 2px rgb(27 30 35 / 0.06), 0 8px 24px -12px rgb(27 30 35 / 0.18)",
+        "purpose": "Purchase tiles on hover; space cards at rest."
+      },
+      {
+        "name": "float",
+        "value": "0 2px 4px rgb(27 30 35 / 0.12), 0 12px 32px -8px rgb(27 30 35 / 0.35)",
+        "purpose": "The floating add pill only."
+      },
+      {
+        "name": "ink-ring",
+        "value": "inset 0 0 0 1px #1b1e23",
+        "purpose": "Doubles a 1px border on focused fields and selected option cards (danger on invalid)."
+      },
+      {
+        "name": "focus-outline",
+        "value": "outline: 2px solid #1b1e23; outline-offset: 2px",
+        "purpose": "Global :focus-visible ring."
+      }
+    ],
+    "motion": [
+      {
+        "name": "ease-out-expo",
+        "value": "cubic-bezier(0.16, 1, 0.3, 1)",
+        "purpose": "Every state transition and the deck fan."
+      },
+      {
+        "name": "state",
+        "value": "150ms",
+        "purpose": "Buttons, fields, the add pill press."
+      },
+      {
+        "name": "hover-surface",
+        "value": "200ms",
+        "purpose": "Tile lift, deck chip dimming, space card rise."
+      },
+      {
+        "name": "deck-fan",
+        "value": "scaleX(0.001 -> 1) 700ms ease-out-expo, 45ms stagger per chip, origin left",
+        "purpose": "The one authored moment: the deck fans out when a space opens. Collapses to 1ms under prefers-reduced-motion."
+      }
+    ],
+    "breakpoints": [
+      {
+        "name": "sm",
+        "value": "640px"
+      },
+      {
+        "name": "lg",
+        "value": "1024px"
+      }
+    ],
+    "chipForegrounds": {
+      "chip-slate": "#f4f6fa",
+      "chip-brick": "#fbf3f1",
+      "chip-ochre": "#1b1e23",
+      "chip-sage": "#f3f7f1",
+      "chip-plum": "#f7f2f7",
+      "chip-teal": "#f0f7f8",
+      "chip-rust": "#fff6ef",
+      "chip-olive": "#f8f7ec",
+      "chip-rose": "#fcf2f6",
+      "chip-graphite": "#f3f4f5",
+      "chip-none": "#1b1e23",
+      "space-deck-green": "#f2f2ee",
+      "space-navy": "#f2f2ee",
+      "space-oxblood": "#f7efee",
+      "space-aubergine": "#f5eff5",
+      "space-deep-teal": "#eef5f6",
+      "space-umber": "#f7f1ea"
+    }
+  },
+  "components": [
+    {
+      "name": "Primary Button",
+      "kind": "button",
+      "refersTo": "button-primary",
+      "description": "The pill: reserved for the one primary action on a screen.",
+      "html": "<button class=\"ds-btn-primary\">Save purchase</button>",
+      "css": ".ds-btn-primary{display:inline-flex;align-items:center;justify-content:center;gap:8px;min-height:48px;padding:0 20px;border:0;border-radius:999px;background:#1b1e23;color:#f2f2ee;font:600 0.9375rem/1 Archivo,ui-sans-serif,system-ui,sans-serif;cursor:pointer;transition:background-color 150ms cubic-bezier(0.16,1,0.3,1),transform 150ms cubic-bezier(0.16,1,0.3,1)}.ds-btn-primary:hover{background:#2c3038}.ds-btn-primary:active{transform:translateY(1px)}.ds-btn-primary:focus-visible{outline:2px solid #1b1e23;outline-offset:2px}"
+    },
+    {
+      "name": "Secondary Button",
+      "kind": "button",
+      "refersTo": "button-secondary",
+      "description": "Square, white, strong hairline; the border turns ink on hover.",
+      "html": "<button class=\"ds-btn-secondary\"><svg width=\"16\" height=\"16\" viewBox=\"0 0 24 24\" fill=\"none\" stroke=\"currentColor\" stroke-width=\"2\" stroke-linecap=\"round\" stroke-linejoin=\"round\" aria-hidden=\"true\"><path d=\"M12 20h9\"/><path d=\"M16.5 3.5a2.1 2.1 0 0 1 3 3L7 19l-4 1 1-4Z\"/></svg>Edit</button>",
+      "css": ".ds-btn-secondary{display:inline-flex;align-items:center;gap:8px;min-height:44px;padding:0 16px;border:1px solid #c9c9c2;border-radius:0;background:#fff;color:#1b1e23;font:600 0.9375rem/1 Archivo,ui-sans-serif,system-ui,sans-serif;cursor:pointer;transition:border-color 150ms cubic-bezier(0.16,1,0.3,1)}.ds-btn-secondary:hover{border-color:#1b1e23}.ds-btn-secondary:active{transform:translateY(1px)}.ds-btn-secondary:focus-visible{outline:2px solid #1b1e23;outline-offset:2px}"
+    },
+    {
+      "name": "Danger Button",
+      "kind": "button",
+      "refersTo": "button-danger",
+      "description": "Outline only until hovered or focused; the first step of the two-step delete.",
+      "html": "<button class=\"ds-btn-danger\"><svg width=\"16\" height=\"16\" viewBox=\"0 0 24 24\" fill=\"none\" stroke=\"currentColor\" stroke-width=\"2\" stroke-linecap=\"round\" stroke-linejoin=\"round\" aria-hidden=\"true\"><path d=\"M3 6h18\"/><path d=\"M19 6v14a2 2 0 0 1-2 2H7a2 2 0 0 1-2-2V6\"/><path d=\"M8 6V4a2 2 0 0 1 2-2h4a2 2 0 0 1 2 2v2\"/></svg>Delete purchase</button>",
+      "css": ".ds-btn-danger{display:inline-flex;align-items:center;gap:8px;min-height:44px;padding:0 16px;border:1px solid rgb(163 48 42 / 0.6);border-radius:0;background:transparent;color:#a3302a;font:600 0.9375rem/1 Archivo,ui-sans-serif,system-ui,sans-serif;cursor:pointer;transition:background-color 150ms cubic-bezier(0.16,1,0.3,1),color 150ms cubic-bezier(0.16,1,0.3,1)}.ds-btn-danger:hover,.ds-btn-danger:focus-visible{background:#a3302a;color:#fff}.ds-btn-danger:focus-visible{outline:2px solid #1b1e23;outline-offset:2px}"
+    },
+    {
+      "name": "Field",
+      "kind": "input",
+      "refersTo": "field",
+      "description": "Square hairline input; focus turns the border ink and doubles it with an inset ring.",
+      "html": "<label class=\"ds-field-wrap\"><span class=\"ds-field-label\">What did you buy?</span><input class=\"ds-field\" placeholder=\"Carrara marble slabs\"></label>",
+      "css": ".ds-field-wrap{display:flex;flex-direction:column;gap:6px;font-family:Archivo,ui-sans-serif,system-ui,sans-serif}.ds-field-label{font-size:0.8125rem;font-weight:600;color:#4d5158}.ds-field{min-height:46px;padding:10px 12px;border:1px solid #c9c9c2;border-radius:0;background:#fff;color:#1b1e23;font:400 0.9375rem/1.4rem inherit;transition:border-color 150ms cubic-bezier(0.16,1,0.3,1),box-shadow 150ms cubic-bezier(0.16,1,0.3,1)}.ds-field::placeholder{color:#686c73}.ds-field:hover{border-color:#686c73}.ds-field:focus{outline:none;border-color:#1b1e23;box-shadow:inset 0 0 0 1px #1b1e23}"
+    },
+    {
+      "name": "Category Chip",
+      "kind": "chip",
+      "refersTo": "chip",
+      "description": "Colour block with the two-letter mono code, then the category name.",
+      "html": "<span class=\"ds-chip\"><span class=\"ds-chip-code\" style=\"background:#3b5a8e;color:#f4f6fa\">FM</span><span>Flooring &amp; marble</span></span> <span class=\"ds-chip\"><span class=\"ds-chip-code\" style=\"background:#d69a2d;color:#1b1e23\">KI</span><span>Kitchen</span></span>",
+      "css": ".ds-chip{display:inline-flex;align-items:center;gap:8px;font:500 0.875rem/1.2 Archivo,ui-sans-serif,system-ui,sans-serif;color:#1b1e23}.ds-chip-code{display:inline-grid;place-items:center;height:20px;min-width:28px;padding:0 4px;font:500 0.6875rem/1 'JetBrains Mono',ui-monospace,monospace;letter-spacing:0.02em}"
+    },
+    {
+      "name": "Space Header",
+      "kind": "custom",
+      "refersTo": "space-header",
+      "description": "The space's own paint chip: name and code, the display total, the ochre saved chip, and the die-cut notch.",
+      "html": "<header class=\"ds-space\"><div class=\"ds-space-row\"><span class=\"ds-space-name\">NEW HOME</span><span class=\"ds-space-code\">SPACE 01</span></div><p class=\"ds-space-lbl\">Spent so far</p><p class=\"ds-space-total\">233,428<span>EGP</span></p><p class=\"ds-space-meta\">15 purchases <span class=\"ds-saved\">12,350 EGP saved</span></p><span class=\"ds-notch\"></span></header>",
+      "css": ".ds-space{position:relative;background:#1f5a50;color:#f2f2ee;padding:24px 20px;font-family:Archivo,ui-sans-serif,system-ui,sans-serif}.ds-space-row{display:flex;gap:12px;align-items:center}.ds-space-name{font-size:0.75rem;font-weight:600;letter-spacing:0.08em}.ds-space-code{font:500 0.6875rem 'JetBrains Mono',ui-monospace,monospace;opacity:.75}.ds-space-lbl{margin:24px 0 0;font-size:0.8125rem;font-weight:500;opacity:.8}.ds-space-total{margin:4px 0 0;font-size:2.75rem;line-height:1;font-weight:800;letter-spacing:-0.025em;font-variant-numeric:tabular-nums}.ds-space-total span{margin-left:8px;font-size:1rem;font-weight:600;letter-spacing:0;opacity:.8}.ds-space-meta{margin:10px 0 0;font-size:0.875rem}.ds-saved{background:#d69a2d;color:#1b1e23;padding:2px 6px;font-weight:700;font-variant-numeric:tabular-nums}.ds-notch{position:absolute;right:20px;bottom:-14px;width:28px;height:28px;border-radius:999px;background:#f2f2ee}"
+    },
+    {
+      "name": "Deck Strip",
+      "kind": "custom",
+      "refersTo": "deck-strip",
+      "description": "Categories fanned by share; also the category filter on the purchases list.",
+      "html": "<div class=\"ds-deck\"><a class=\"ds-deck-chip\" style=\"flex:.26;background:#d69a2d;color:#1b1e23\"><b>Kitchen</b><code>KI · 26%</code></a><a class=\"ds-deck-chip\" style=\"flex:.22;background:#5b7f4e;color:#f3f7f1\"><b>Appliances</b><code>AP</code></a><a class=\"ds-deck-chip\" style=\"flex:.19;background:#3b5a8e;color:#f4f6fa\"><b>Flooring</b><code>FM</code></a><a class=\"ds-deck-chip\" style=\"flex:.12;background:#c2672b;color:#fff6ef\"><code>FU</code></a><a class=\"ds-deck-chip\" style=\"flex:.1;background:#2e7c8a;color:#f0f7f8\"><code>PS</code></a><a class=\"ds-deck-chip\" style=\"flex:.06;background:#b04a3a\"></a><a class=\"ds-deck-chip\" style=\"flex:.05;background:#6b4a6e\"></a></div>",
+      "css": ".ds-deck{display:flex;gap:2px;height:64px;background:#f2f2ee}.ds-deck-chip{display:flex;flex-direction:column;justify-content:space-between;min-width:12px;padding:6px;overflow:hidden;transform-origin:left center;animation:ds-fan 700ms cubic-bezier(0.16,1,0.3,1) both;cursor:pointer;text-decoration:none;transition:filter 200ms}.ds-deck-chip:hover{filter:brightness(1.1)}.ds-deck-chip b{font:600 0.6875rem/1.2 Archivo,ui-sans-serif,sans-serif;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}.ds-deck-chip code{margin-top:auto;font:500 0.6875rem 'JetBrains Mono',ui-monospace,monospace;opacity:.85;white-space:nowrap}@keyframes ds-fan{from{transform:scaleX(.001)}to{transform:scaleX(1)}}@media (prefers-reduced-motion:reduce){.ds-deck-chip{animation-duration:1ms}}"
+    },
+    {
+      "name": "Purchase Tile",
+      "kind": "card",
+      "refersTo": "purchase-tile",
+      "description": "Square photo on the photo well, a 6px category band, name, and tabular price; lifts on hover.",
+      "html": "<a class=\"ds-tile\"><div class=\"ds-tile-photo\"><span class=\"ds-tile-off\">−17%</span></div><div class=\"ds-tile-band\" style=\"background:#d69a2d\"></div><div class=\"ds-tile-body\"><p class=\"ds-tile-name\">Kitchen mixer tap</p><p class=\"ds-tile-price\"><b>3,500</b><s>4,200</s></p></div></a>",
+      "css": ".ds-tile{display:flex;flex-direction:column;width:180px;border:1px solid #deded8;background:#fff;color:#1b1e23;font-family:Archivo,ui-sans-serif,system-ui,sans-serif;text-decoration:none;cursor:pointer;transition:border-color 200ms,box-shadow 200ms}.ds-tile:hover{border-color:#c9c9c2;box-shadow:0 1px 2px rgb(27 30 35 / 0.06),0 8px 24px -12px rgb(27 30 35 / 0.18)}.ds-tile:focus-visible{outline:2px solid #1b1e23;outline-offset:2px}.ds-tile-photo{position:relative;aspect-ratio:1;background:#e6e6e1}.ds-tile-off{position:absolute;top:8px;left:8px;background:#d69a2d;color:#1b1e23;padding:2px 6px;font-size:0.75rem;font-weight:700}.ds-tile-band{height:6px}.ds-tile-body{padding:10px}.ds-tile-name{margin:0;font-size:0.875rem;font-weight:600;line-height:1.35}.ds-tile-price{margin:8px 0 0;display:flex;gap:6px;align-items:baseline;font-variant-numeric:tabular-nums}.ds-tile-price b{font-size:0.9375rem;font-weight:800}.ds-tile-price s{font-size:0.75rem;color:#686c73}"
+    },
+    {
+      "name": "Tab Bar and Add Pill",
+      "kind": "nav",
+      "refersTo": "tab-bar",
+      "description": "Phone navigation: four tabs with an ink underline on the active one, and the floating ink add pill above.",
+      "html": "<div class=\"ds-navwrap\"><a class=\"ds-add\"><svg width=\"20\" height=\"20\" viewBox=\"0 0 24 24\" fill=\"none\" stroke=\"currentColor\" stroke-width=\"2.5\" stroke-linecap=\"round\" aria-hidden=\"true\"><path d=\"M12 5v14M5 12h14\"/></svg>Add purchase</a><nav class=\"ds-tabs\"><a><svg width=\"22\" height=\"22\" viewBox=\"0 0 24 24\" fill=\"none\" stroke=\"currentColor\" stroke-width=\"1.75\" stroke-linejoin=\"round\" aria-hidden=\"true\"><path d=\"m12 2 10 5-10 5L2 7Z\"/><path d=\"m2 12 10 5 10-5\"/><path d=\"m2 17 10 5 10-5\"/></svg>Spaces<i></i></a><a aria-current=\"page\"><svg width=\"22\" height=\"22\" viewBox=\"0 0 24 24\" fill=\"none\" stroke=\"currentColor\" stroke-width=\"2.25\" aria-hidden=\"true\"><rect x=\"3\" y=\"3\" width=\"7\" height=\"7\" rx=\"1\"/><rect x=\"14\" y=\"3\" width=\"7\" height=\"7\" rx=\"1\"/><rect x=\"3\" y=\"14\" width=\"7\" height=\"7\" rx=\"1\"/><rect x=\"14\" y=\"14\" width=\"7\" height=\"7\" rx=\"1\"/></svg>Overview<i></i></a><a><svg width=\"22\" height=\"22\" viewBox=\"0 0 24 24\" fill=\"none\" stroke=\"currentColor\" stroke-width=\"1.75\" stroke-linecap=\"round\" aria-hidden=\"true\"><path d=\"M8 6h13M8 12h13M8 18h13M3 6h.01M3 12h.01M3 18h.01\"/></svg>Purchases<i></i></a><a><svg width=\"22\" height=\"22\" viewBox=\"0 0 24 24\" fill=\"none\" stroke=\"currentColor\" stroke-width=\"1.75\" aria-hidden=\"true\"><circle cx=\"12\" cy=\"8\" r=\"5\"/><path d=\"M20 21a8 8 0 0 0-16 0\"/></svg>Me<i></i></a></nav></div>",
+      "css": ".ds-navwrap{position:relative;width:360px;padding-top:72px;background:#f2f2ee;font-family:Archivo,ui-sans-serif,system-ui,sans-serif}.ds-add{position:absolute;top:8px;left:50%;transform:translateX(-50%);display:inline-flex;align-items:center;gap:8px;min-height:52px;padding:0 24px;border-radius:999px;background:#1b1e23;color:#f2f2ee;font-size:0.9375rem;font-weight:700;box-shadow:0 2px 4px rgb(27 30 35 / 0.12),0 12px 32px -8px rgb(27 30 35 / 0.35);cursor:pointer;transition:transform 150ms}.ds-add:active{transform:translateX(-50%) scale(.98)}.ds-add:focus-visible{outline:2px solid #1b1e23;outline-offset:2px}.ds-tabs{display:grid;grid-template-columns:repeat(4,1fr);border-top:1px solid #deded8;background:rgb(255 255 255 / .95);backdrop-filter:blur(12px)}.ds-tabs a{display:flex;flex-direction:column;align-items:center;justify-content:center;gap:4px;min-height:64px;color:#686c73;font-size:0.6875rem;font-weight:600;letter-spacing:0.02em;cursor:pointer}.ds-tabs a:hover{color:#1b1e23}.ds-tabs a[aria-current]{color:#1b1e23}.ds-tabs i{display:block;width:20px;height:2px}.ds-tabs a[aria-current] i{background:#1b1e23}"
+    },
+    {
+      "name": "Two-Step Delete (armed)",
+      "kind": "custom",
+      "refersTo": "confirm-panel",
+      "description": "The armed state of a destructive action: danger-tint panel, filled confirm that takes focus, ghost Keep it.",
+      "html": "<div class=\"ds-confirm\" role=\"alertdialog\"><p>Delete “Kitchen mixer tap” and its 2 files? This can't be undone.</p><div><button class=\"ds-confirm-go\">Delete for good</button><button class=\"ds-confirm-keep\">Keep it</button></div></div>",
+      "css": ".ds-confirm{display:flex;flex-direction:column;gap:12px;padding:16px;border:1px solid rgb(163 48 42 / .4);background:#f6e7e5;color:#1b1e23;font:400 0.9375rem/1.4rem Archivo,ui-sans-serif,system-ui,sans-serif}.ds-confirm p{margin:0}.ds-confirm div{display:flex;gap:8px;flex-wrap:wrap}.ds-confirm button{min-height:44px;border-radius:0;font:600 0.9375rem/1 inherit;cursor:pointer}.ds-confirm-go{padding:0 16px;border:1px solid #a3302a;background:#a3302a;color:#fff}.ds-confirm-go:hover{filter:brightness(1.1)}.ds-confirm-keep{padding:0 12px;border:0;background:transparent;color:#1b1e23}.ds-confirm-keep:hover{background:rgb(0 0 0 / .05)}.ds-confirm button:focus-visible{outline:2px solid #1b1e23;outline-offset:2px}"
+    }
+  ],
+  "narrative": {
+    "northStar": "The Fan Deck",
+    "overview": "Every category is a paint chip, and a space reads as a fan deck of where the money went. The ground is cool chip-stock grey, records sit on white cards edged with hairlines, and text is near-black ink. Colour almost never decorates. It comes from two places only: the category chips, which take hues in strict deck order, and each space's own deep header chip, which floods the top of every screen in that space and carries its total.\n\nThe world is square and printed. Corners are square everywhere except two shapes: the pill on the primary action and the round die-cut notch punched out of chip headers. Rank comes from weight and case inside a three-size scale, not from a ladder of sizes. Every amount is set in tabular figures so totals line up in columns. The photo is the record, so every purchase tile leads with one square crop on one neutral well.\n\nThe density is that of a well-kept ledger: compact, hairline-divided, and calm, with a single authored moment of motion when a space opens and its deck fans out.",
+    "keyCharacteristics": [
+      "Chip-stock ground (`ground`), white cards on hairlines, ink text.",
+      "Category colour comes in strict deck order, with a two-letter JetBrains Mono chip code on every chip.",
+      "Each space owns a saturated header chip and a warm accent, set as scoped CSS variables.",
+      "Square corners. Only the primary-action pill and the die-cut notch are round.",
+      "Tabular figures for every amount. A running total sits at the foot of every list.",
+      "One motion moment: the deck strip fans out from the left."
+    ],
+    "rules": [
+      {
+        "name": "The Deck Order Rule",
+        "body": "Categories take chip hues strictly by index (`index % 10`), never by hand-picked meaning. Keeping the order keeps adjacent hues spaced apart instead of turning to confetti.",
+        "section": "colors"
+      },
+      {
+        "name": "The Two Sources Rule",
+        "body": "Colour on a screen comes from the category chips or from the current space's chip variables. A new surface does not introduce another accent.",
+        "section": "colors"
+      },
+      {
+        "name": "The Ink On Ochre Rule",
+        "body": "Ochre and every space accent always carry ink text, never white.",
+        "section": "colors"
+      },
+      {
+        "name": "The Three Sizes Rule",
+        "body": "The token scale is label, body, and title, and rank comes from weight and case within it. The two working sizes (0.875rem and 0.8125rem) only make dense metadata quieter; they never create rank. Only amounts and the purchase name go above title.",
+        "section": "typography"
+      },
+      {
+        "name": "The Tabular Rule",
+        "body": "Every amount uses tabular, lining figures (`tnum`, `lnum`), and amounts in lists sit right-aligned with a smaller, lighter currency suffix (EGP) after them.",
+        "section": "typography"
+      },
+      {
+        "name": "The Mono Is For Codes Rule",
+        "body": "JetBrains Mono appears only on chip codes. It never sets prose, amounts, or labels.",
+        "section": "typography"
+      },
+      {
+        "name": "The Flat Card Rule",
+        "body": "White cards rest flat on a hairline. They lift only on hover.",
+        "section": "elevation"
+      },
+      {
+        "name": "The Translucent Chrome Rule",
+        "body": "The tab bar and the running-total bar sit at 95% opacity with a medium backdrop blur, so the deck and the photos stay faintly visible beneath them.",
+        "section": "elevation"
+      },
+      {
+        "name": "The One Pill Rule",
+        "body": "A pill means \"this is the primary action\". No chip, badge, tag, or secondary control is ever rounded.",
+        "section": "shapes"
+      }
+    ],
+    "dos": [
+      "Do set every amount in tabular figures, right-aligned in lists, with the currency as a smaller, lighter suffix.",
+      "Do assign category colours by deck index and print the two-letter mono code on the chip.",
+      "Do wrap every space screen in the space scope so its header chip, accent, links, and caret all follow `--space-bg`, `--space-fg`, and `--space-accent`.",
+      "Do keep corners square. Use the pill (999px) only for the primary action, and the notch only on chip headers.",
+      "Do lead every purchase with its square photo on the photo well, banded 6px in its category colour.",
+      "Do pin a running total to the foot of every list of purchases.",
+      "Do keep delete isolated, outline-only until it is hovered or focused, and confirmed with a second tap.",
+      "Do honour reduced motion. The deck fan collapses to an instant."
+    ],
+    "donts": [
+      "Don't use the category default this world refuses: a white card list with a donut chart and one blue accent.",
+      "Don't round cards, chips, badges, fields, or secondary buttons.",
+      "Don't introduce an accent outside the category deck, the space chips, and ochre.",
+      "Don't put white text on ochre or on a space accent.",
+      "Don't use JetBrains Mono for anything but chip codes.",
+      "Don't create rank with a new size above title. Use weight and case; only amounts and the purchase name go larger.",
+      "Don't shadow a white card at rest. Lift is a hover response, and Float belongs only to the add pill.",
+      "Don't fill a destructive button before it is armed or focused."
+    ]
+  }
+}
