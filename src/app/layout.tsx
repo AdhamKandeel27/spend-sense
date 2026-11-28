@@ -1,6 +1,6 @@
 import type { Metadata, Viewport } from "next";
 import { Archivo, JetBrains_Mono } from "next/font/google";
-import { privacyBootScript } from "@/lib/privacy";
+import { privacyBootScript, privacyStyles } from "@/lib/privacy";
 import "./globals.css";
 
 const archivo = Archivo({
@@ -39,6 +39,7 @@ export default function RootLayout({ children }: LayoutProps<"/">) {
     // suppressHydrationWarning: the boot script may add data-hide-money before React loads.
     <html lang="en" className={`${archivo.variable} ${jetbrains.variable} antialiased`} suppressHydrationWarning>
       <head>
+        <style dangerouslySetInnerHTML={{ __html: privacyStyles }} />
         <script dangerouslySetInnerHTML={{ __html: privacyBootScript }} />
       </head>
       <body className="min-h-dvh">{children}</body>

@@ -9,6 +9,18 @@ export const HIDE_DEFAULT_KEY = "spend-sense:hide-money-default";
 export const HIDE_NOW_KEY = "spend-sense:hide-money";
 const EVENT = "spend-sense:privacy";
 
+/**
+ * The hide/show rules, inlined in <head> next to the boot script rather than
+ * in globals.css: they must apply on the very first paint, and must not
+ * depend on the CSS build (which once silently dropped them).
+ */
+export const privacyStyles = [
+  ".money-mask{display:none;letter-spacing:.08em}",
+  "[data-hide-money] .money-value{display:none!important}",
+  "[data-hide-money] .money-mask{display:inline!important}",
+  "[data-hide-money] .money-input{-webkit-text-security:disc}",
+].join("");
+
 /** Runs in <head> before first paint, so amounts never flash on load. */
 export const privacyBootScript = `try{var s=sessionStorage.getItem(${JSON.stringify(HIDE_NOW_KEY)});var h=s!==null?s==="1":localStorage.getItem(${JSON.stringify(HIDE_DEFAULT_KEY)})==="1";if(h)document.documentElement.setAttribute("data-hide-money","")}catch(e){}`;
 
