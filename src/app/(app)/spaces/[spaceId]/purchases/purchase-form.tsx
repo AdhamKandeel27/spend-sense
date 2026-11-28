@@ -245,6 +245,7 @@ export function PurchaseForm({
             removed={removed}
             onToggleExisting={(id) => setRemoved((s) => toggle(s, id))}
             onRemovePicked={(key) => dropPicked(setPhotos, key)}
+            onPick={(f) => pick(f, "photo")}
           />
           <div className="mt-2.5 grid grid-cols-2 gap-2">
             <FilePick label="Take photo" icon={Camera} accept="image/*" capture onPick={(f) => pick(f, "photo")} />
@@ -673,25 +674,75 @@ function MediaGrid({
   removed,
   onToggleExisting,
   onRemovePicked,
+  onPick,
 }: {
   existing: ExistingAttachment[];
   picked: Picked[];
   removed: Set<string>;
   onToggleExisting: (id: string) => void;
   onRemovePicked: (key: string) => void;
+  onPick: (files: FileList | null) => void;
 }) {
+  const inputId = useId();
+  const [dragging, setDragging] = useState(false);
+  const hasFiles = (e: React.DragEvent) => Array.from(e.dataTransfer.types).includes("Files");
+
+  // The whole area takes dropped images; tapping the empty box (or the + tile) opens the picker.
+  const dropProps = {
+    onDragEnter: (e: React.DragEvent) => {
+      if (!hasFiles(e)) return;
+      e.preventDefault();
+      setDragging(true);
+    },
+    onDragOver: (e: React.DragEvent) => {
+      if (!hasFiles(e)) return;
+      e.preventDefault();
+      e.dataTransfer.dropEffect = "copy";
+    },
+    onDragLeave: (e: React.DragEvent) => {
+      if (!e.currentTarget.contains(e.relatedTarget as Node | null)) setDragging(false);
+    },
+    onDrop: (e: React.DragEvent) => {
+      if (!hasFiles(e)) return;
+      e.preventDefault();
+      setDragging(false);
+      onPick(e.dataTransfer.files);
+    },
+  };
+  const input = (
+    <input
+      id={inputId}
+      type="file"
+      accept="image/*"
+      multiple
+      className="sr-only"
+      onChange={(e) => {
+        onPick(e.target.files);
+        e.target.value = "";
+      }}
+    />
+  );
+  const focusRing = "has-[:focus-visible]:outline-2 has-[:focus-visible]:outline-offset-2 has-[:focus-visible]:outline-ink";
+
   if (existing.length === 0 && picked.length === 0) {
     return (
-      <div className="grid aspect-[4/3] place-items-center border border-dashed border-line-strong bg-card/60 text-center text-[0.875rem] text-ink-3 lg:aspect-square">
-        <span className="flex flex-col items-center gap-2 px-6">
-          <Camera size={28} strokeWidth={1.5} aria-hidden />
-          Add a photo so you can recognise it later.
+      <label
+        htmlFor={inputId}
+        {...dropProps}
+        className={`grid aspect-[4/3] cursor-pointer place-items-center border border-dashed text-center text-[0.875rem] transition-colors duration-150 lg:aspect-square ${focusRing} ${
+          dragging ? "border-ink bg-card text-ink" : "border-line-strong bg-card/60 text-ink-3 hover:border-ink-3 hover:bg-card hover:text-ink-2"
+        }`}
+      >
+        <span className="pointer-events-none flex flex-col items-center gap-2 px-6">
+          {dragging ? <ImagePlus size={28} strokeWidth={1.5} aria-hidden /> : <Camera size={28} strokeWidth={1.5} aria-hidden />}
+          {dragging ? "Drop to add" : "Tap to add a photo, or drag one here."}
         </span>
-      </div>
+        {input}
+      </label>
     );
   }
   return (
-    <ul className="grid grid-cols-3 gap-1.5">
+    <ul {...dropProps} className={`grid grid-cols-3 gap-1.5 outline-offset-4 ${dragging ? "outline-2 outline-dashed outline-ink" : ""}`}>
       {existing.map((a) => {
         const isRemoved = removed.has(a.id);
         return (
@@ -724,6 +775,18 @@ function MediaGrid({
           <span className="absolute bottom-1 left-1 bg-ochre px-1 text-[0.6875rem] font-bold">NEW</span>
         </li>
       ))}
+      <li>
+        <label
+          htmlFor={inputId}
+          className={`grid aspect-square cursor-pointer place-items-center border border-dashed border-line-strong bg-card/60 text-ink-3 transition-colors duration-150 hover:border-ink-3 hover:bg-card hover:text-ink-2 ${focusRing}`}
+        >
+          <span className="pointer-events-none flex flex-col items-center gap-1 text-[0.75rem] font-semibold">
+            <Plus size={22} strokeWidth={1.75} aria-hidden />
+            Add photo
+          </span>
+          {input}
+        </label>
+      </li>
     </ul>
   );
 }
