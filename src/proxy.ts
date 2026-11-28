@@ -4,6 +4,11 @@ import { type NextRequest, NextResponse } from "next/server";
 /**
  * Optimistic routing only: sends visitors without a session cookie to
  * sign-in. Real authorization happens in the data layer (requireUser).
+ *
+ * It never sends anyone *away* from the sign-in pages: a cookie can be
+ * stale (expired, or from another database), and bouncing on it would loop
+ * with requireUser's redirect to /sign-in. The auth layout checks the real
+ * session and redirects signed-in users instead.
  */
 export function proxy(request: NextRequest) {
   const { pathname } = request.nextUrl;
@@ -17,9 +22,6 @@ export function proxy(request: NextRequest) {
     const url = new URL("/sign-in", request.url);
     url.searchParams.set("next", pathname);
     return NextResponse.redirect(url);
-  }
-  if (hasSession && isAuthPage) {
-    return NextResponse.redirect(new URL("/spaces", request.url));
   }
   return NextResponse.next();
 }

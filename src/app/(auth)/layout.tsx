@@ -1,8 +1,20 @@
+import { redirect } from "next/navigation";
+import { Suspense } from "react";
 import { Wordmark } from "@/components/wordmark";
+import { getCurrentUser } from "@/lib/session";
+
+/** Signed-in visitors skip the auth pages. Checks the real session, not just the cookie. */
+async function RedirectIfSignedIn() {
+  if (await getCurrentUser()) redirect("/spaces");
+  return null;
+}
 
 export default function AuthLayout({ children }: LayoutProps<"/">) {
   return (
     <main className="grid min-h-dvh lg:grid-cols-[minmax(0,1fr)_minmax(0,1.1fr)]">
+      <Suspense fallback={null}>
+        <RedirectIfSignedIn />
+      </Suspense>
       {/* The deck, fanned, as the brand side. */}
       <section className="relative flex flex-col justify-between overflow-hidden bg-[#1f5a50] px-6 pt-[max(2.5rem,env(safe-area-inset-top))] pb-8 text-[#f2f2ee] lg:px-12 lg:py-12">
         <Wordmark tone="light" />
