@@ -88,6 +88,7 @@ async function Purchases({ params, searchParams }: Props) {
           <PurchaseFilters
             rooms={options.rooms.map((r) => ({ id: r.id, name: r.name }))}
             vendors={options.vendors.map((v) => ({ id: v.id, name: v.name }))}
+            categories={overview.byCategory.map((c) => ({ id: c.id, name: c.name, color: c.color, count: c.count }))}
           />
         </div>
 

@@ -3,10 +3,21 @@
 import { LayoutGrid, Rows3, Search, SlidersHorizontal, X } from "lucide-react";
 import { usePathname, useRouter, useSearchParams } from "next/navigation";
 import { useEffect, useRef, useState, useTransition } from "react";
+import { chipColor } from "@/lib/palette";
 
 type Option = { id: string; name: string };
+/** A category that has purchases; id null = uncategorised. */
+type CategoryOption = { id: string | null; name: string; color: number; count: number };
 
-export function PurchaseFilters({ rooms, vendors }: { rooms: Option[]; vendors: Option[] }) {
+export function PurchaseFilters({
+  rooms,
+  vendors,
+  categories,
+}: {
+  rooms: Option[];
+  vendors: Option[];
+  categories: CategoryOption[];
+}) {
   const router = useRouter();
   const pathname = usePathname();
   const params = useSearchParams();
@@ -70,6 +81,10 @@ export function PurchaseFilters({ rooms, vendors }: { rooms: Option[]; vendors: 
         </div>
       </div>
 
+      {categories.length > 0 && (
+        <CategoryChips categories={categories} active={params.get("category")} onPick={(id) => update({ category: id })} />
+      )}
+
       {open && (
         <div id="more-filters" className="grid grid-cols-2 gap-2.5 border border-line bg-card p-3 sm:grid-cols-5">
           <SelectFilter label="Room" value={params.get("room") ?? ""} onChange={(v) => update({ room: v })}>
@@ -125,6 +140,47 @@ export function PurchaseFilters({ rooms, vendors }: { rooms: Option[]; vendors: 
           <X size={14} aria-hidden /> Clear filters
         </button>
       )}
+    </div>
+  );
+}
+
+/** One tap to filter by category; tap the active one (or All) to clear. Scrolls sideways on phones. */
+function CategoryChips({
+  categories,
+  active,
+  onPick,
+}: {
+  categories: CategoryOption[];
+  active: string | null;
+  onPick: (id: string | null) => void;
+}) {
+  const chip = (on: boolean) =>
+    `inline-flex min-h-10 shrink-0 items-center gap-2 border px-3 text-[0.875rem] font-semibold whitespace-nowrap transition-colors duration-150 ${
+      on ? "border-ink bg-ink text-ground" : "border-line-strong bg-card text-ink-2 hover:border-ink hover:text-ink"
+    }`;
+  return (
+    <div role="group" aria-label="Filter by category" className="-mx-5 overflow-x-auto px-5 [scrollbar-width:none] lg:-mx-10 lg:px-10 [&::-webkit-scrollbar]:hidden">
+      <ul className="flex w-max gap-1.5">
+        <li>
+          <button type="button" aria-pressed={!active} onClick={() => onPick(null)} className={chip(!active)}>
+            All
+          </button>
+        </li>
+        {categories.map((c) => {
+          const key = c.id ?? "none";
+          const on = active === key;
+          const color = chipColor(c.id ? c.color : -1);
+          return (
+            <li key={key}>
+              <button type="button" aria-pressed={on} onClick={() => onPick(on ? null : key)} className={chip(on)}>
+                <span aria-hidden className="size-3 shrink-0" style={{ background: color.bg, outline: on ? "1px solid rgb(255 255 255 / .5)" : undefined }} />
+                {c.name}
+                <span className={`num text-[0.75rem] font-medium ${on ? "text-ground/70" : "text-ink-3"}`}>{c.count}</span>
+              </button>
+            </li>
+          );
+        })}
+      </ul>
     </div>
   );
 }
