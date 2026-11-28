@@ -22,6 +22,16 @@ export type SpaceSummary = {
 
 const savedExpr = sql<string>`coalesce(sum(greatest(coalesce(${purchases.originalTotal}, ${purchases.totalPaid}) - ${purchases.totalPaid}, 0)), 0)`;
 
+/** Ids of the user's active spaces, for checking the nav's remembered space. */
+export async function listSpaceIds(): Promise<string[]> {
+  const user = await requireUser();
+  const rows = await db
+    .select({ id: spaces.id })
+    .from(spaces)
+    .where(and(eq(spaces.ownerId, user.id), isNull(spaces.archivedAt)));
+  return rows.map((r) => r.id);
+}
+
 export async function listSpaces(): Promise<SpaceSummary[]> {
   const user = await requireUser();
   const rows = await db

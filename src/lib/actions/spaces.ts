@@ -51,7 +51,8 @@ export async function createSpace(_prev: FormState, formData: FormData): Promise
     return space.id;
   });
 
-  revalidatePath("/spaces");
+  // "/" layout: the nav's list of spaces lives in the (app) layout.
+  revalidatePath("/", "layout");
   redirect(`/spaces/${spaceId}`);
 }
 
@@ -94,7 +95,7 @@ export async function deleteSpace(spaceId: string, _prev: FormState, formData: F
   await db.delete(spaces).where(eq(spaces.id, space.id));
   await Promise.allSettled(files.flatMap((f) => [storage.delete(f.key), f.thumb ? storage.delete(f.thumb) : null]));
 
-  revalidatePath("/spaces");
+  revalidatePath("/", "layout");
   redirect("/spaces");
 }
 

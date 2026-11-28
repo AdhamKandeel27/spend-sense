@@ -147,10 +147,6 @@ async function resolveRefs(tx: Tx, space: Space, data: Parsed) {
   return { categoryId, roomId, vendorId };
 }
 
-function collectFiles(formData: FormData, field: string): File[] {
-  return formData.getAll(field).filter((v): v is File => v instanceof File && v.size > 0);
-}
-
 type Stored = { kind: UploadKind; file: File; processed: ProcessedFile };
 
 const TOO_MANY_FILES = `Attach up to ${MAX_FILES} files at a time.`;
@@ -190,18 +186,9 @@ async function clearIncoming(uploads: UploadedFile[]) {
   await Promise.allSettled(uploads.map((u) => storage.delete(u.key)));
 }
 
-async function prepareFiles(
-  formData: FormData,
-  uploads: UploadedFile[],
-): Promise<{ files?: Stored[]; error?: string }> {
-  // Without direct uploads (local disk), files arrive with the form itself.
-  const inline = [
-    ...collectFiles(formData, "photos").map((file) => ({ kind: "photo" as const, file })),
-    ...collectFiles(formData, "receipts").map((file) => ({ kind: "receipt" as const, file })),
-  ];
-  if (inline.length + uploads.length > MAX_FILES) return { error: TOO_MANY_FILES };
+async function prepareFiles(uploads: UploadedFile[]): Promise<{ files?: Stored[]; error?: string }> {
   try {
-    const inputs = [...inline];
+    const inputs: { kind: UploadKind; file: File }[] = [];
     for (const u of uploads) {
       const body = await readFile(storage, u.key);
       if (!body) return { error: "A file didn't finish uploading. Please add it again." };
@@ -216,13 +203,12 @@ async function prepareFiles(
   }
 }
 
-type PrepareUploadsResult = { slots: { key: string; url: string }[] } | { direct: true } | { error: string };
+type PrepareUploadsResult = { slots: { key: string; url: string }[] } | { error: string };
 
 /**
  * Step one of saving a purchase with files: hands the browser one signed
  * upload URL per file, so the files go straight to the private bucket and
- * the form submit itself stays small. Returns { direct: true } when the
- * storage can't do that (local disk); the form then attaches the files.
+ * the form submit itself stays small.
  */
 export async function prepareUploads(spaceId: string, files: UploadRequest[]): Promise<PrepareUploadsResult> {
   const space = await getSpace(spaceId);
@@ -245,8 +231,7 @@ export async function prepareUploads(spaceId: string, files: UploadRequest[]): P
       return { key, url: await storage.createUploadUrl(key) };
     }),
   );
-  if (slots.some((s) => s.url === null)) return { direct: true };
-  return { slots: slots as { key: string; url: string }[] };
+  return { slots };
 }
 
 async function writeFiles(spaceId: string, purchaseId: string, files: Stored[], startPosition: number) {
@@ -303,7 +288,7 @@ async function saveNewPurchase(space: Space, formData: FormData, uploads: Upload
   const { data, fieldErrors } = parsePurchase(formData);
   if (!data) return { fieldErrors, values, error: "Check the highlighted fields." };
 
-  const prepared = await prepareFiles(formData, uploads);
+  const prepared = await prepareFiles(uploads);
   if (prepared.error) return { error: prepared.error, fieldErrors: { files: prepared.error }, values };
 
   const purchaseId = crypto.randomUUID();
@@ -363,7 +348,7 @@ async function saveExistingPurchase(
   const { data, fieldErrors } = parsePurchase(formData);
   if (!data) return { fieldErrors, values, error: "Check the highlighted fields." };
 
-  const prepared = await prepareFiles(formData, uploads);
+  const prepared = await prepareFiles(uploads);
   if (prepared.error) return { error: prepared.error, fieldErrors: { files: prepared.error }, values };
 
   const removeIds = formData

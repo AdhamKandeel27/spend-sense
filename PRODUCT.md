@@ -9,11 +9,11 @@ web
 ## Stack
 
 - Next.js (React). Fully responsive: phone first, and equally usable on tablet and desktop.
-- Postgres (running in Docker), accessed through Drizzle ORM.
-- Better Auth for sign-in. It is a self-hosted library, so there is no external account.
-- Images and receipts are stored on disk in a Docker volume, behind a storage interface. This allows a switch to S3-compatible storage (for example Cloudflare R2) later. Supabase was considered and dropped because of cost as the app grows.
+- Postgres on Supabase (free tier), accessed through Drizzle ORM. This is a stopgap until the owner buys a server.
+- Better Auth for sign-in. It is a self-hosted library and accounts live in our own tables, so they move with the database. Supabase Auth is deliberately not used.
+- Images and receipts are stored in a private Supabase Storage bucket, behind a storage interface, so the storage can change later without touching features.
 - Images are resized and converted to WebP when uploaded, and iPhone HEIC photos are accepted.
-- Containerized with Docker and Docker Compose.
+- Hosted on Vercel. Docker Compose runs the same production app locally.
 - The owner wants to be asked before any additional technology is adopted.
 
 ## Users

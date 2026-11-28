@@ -7,13 +7,8 @@ const nextConfig: NextConfig = {
   partialPrefetching: true,
   // sharp ships native binaries; keep it out of the server bundle.
   serverExternalPackages: ["sharp"],
-  experimental: {
-    serverActions: {
-      // Photos and receipts are uploaded through Server Actions.
-      // Images are downscaled in the browser first; PDFs can be larger.
-      bodySizeLimit: "25mb",
-    },
-  },
+  // No Server Action body limit override: files go straight from the browser
+  // to Supabase Storage, so forms only carry text and file keys.
   turbopack: {
     rules: {
       "*.css": {

@@ -23,8 +23,7 @@ FROM node:24-alpine AS runner
 WORKDIR /app
 ENV NODE_ENV=production NEXT_TELEMETRY_DISABLED=1 PORT=3000 HOSTNAME=0.0.0.0
 
-RUN addgroup -S app && adduser -S app -G app \
-  && mkdir -p /data/uploads && chown -R app:app /data
+RUN addgroup -S app && adduser -S app -G app
 
 COPY --from=build --chown=app:app /app/public ./public
 COPY --from=build --chown=app:app /app/.next/standalone ./

@@ -1,50 +1,23 @@
-# Spend Sense — local stack
+# Spend Sense: run the production app locally on :5000.
 #
-#   docker compose up -d db          # just Postgres, for `pnpm dev`
-#   docker compose up -d --build     # Postgres + the production app on :5000
+#   docker compose up -d --build
 #
+# The database and files live on Supabase; all settings come from .env
+# (DATABASE_URL, DATABASE_URL_DIRECT, NEXT_PUBLIC_SUPABASE_URL,
+# SUPABASE_SECRET_KEY, BETTER_AUTH_SECRET). There is no local database.
 services:
-  db:
-    image: postgres:17-alpine
-    restart: unless-stopped
-    environment:
-      POSTGRES_USER: ${POSTGRES_USER:-spendsense}
-      POSTGRES_PASSWORD: ${POSTGRES_PASSWORD:-spendsense}
-      POSTGRES_DB: ${POSTGRES_DB:-spendsense}
-    ports:
-      # 5432/5433 are often taken by other local projects.
-      - "127.0.0.1:${POSTGRES_PORT:-5434}:5432"
-    volumes:
-      - pgdata:/var/lib/postgresql/data
-    healthcheck:
-      test: ["CMD-SHELL", "pg_isready -U $${POSTGRES_USER} -d $${POSTGRES_DB}"]
-      interval: 5s
-      timeout: 3s
-      retries: 10
-
   app:
     build: .
     restart: unless-stopped
-    depends_on:
-      db:
-        condition: service_healthy
     env_file:
       - path: .env
-        required: false
+        required: true
     environment:
-      # Uses Supabase when .env sets DATABASE_URL; otherwise the db service above.
-      DATABASE_URL: ${DATABASE_URL:-postgres://${POSTGRES_USER:-spendsense}:${POSTGRES_PASSWORD:-spendsense}@db:5432/${POSTGRES_DB:-spendsense}}
-      DATABASE_URL_DIRECT: ${DATABASE_URL_DIRECT:-}
-      UPLOAD_DIR: /data/uploads
+      DATABASE_URL: ${DATABASE_URL:?Set DATABASE_URL in .env (Supabase transaction pooler)}
+      DATABASE_URL_DIRECT: ${DATABASE_URL_DIRECT:?Set DATABASE_URL_DIRECT in .env (Supabase session pooler)}
       RUN_MIGRATIONS: "true"
       BETTER_AUTH_URL: ${BETTER_AUTH_URL:-http://localhost:5000}
       TRUSTED_ORIGINS: ${TRUSTED_ORIGINS:-}
-      BETTER_AUTH_SECRET: ${BETTER_AUTH_SECRET:-}  # required — set it in .env (see README)
+      BETTER_AUTH_SECRET: ${BETTER_AUTH_SECRET:?Set BETTER_AUTH_SECRET in .env}
     ports:
       - "${APP_PORT:-5000}:3000"
-    volumes:
-      - uploads:/data/uploads
-
-volumes:
-  pgdata:
-  uploads:

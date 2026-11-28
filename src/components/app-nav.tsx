@@ -13,25 +13,32 @@ const subscribeStorage = (cb: () => void) => {
   return () => window.removeEventListener("storage", cb);
 };
 
-/** The space in the URL, or the last one visited (so Overview/Purchases work from /account). */
-function useSpaceContext() {
+/**
+ * The space in the URL, or the last one visited (so Overview/Purchases work
+ * from /account). Only spaces that still exist count: a remembered id can be
+ * stale (the space was deleted, or came from another database).
+ */
+function useSpaceContext(spaceIds: string[]) {
   const params = useParams<{ spaceId?: string }>();
   const last = useSyncExternalStore(
     subscribeStorage,
     () => localStorage.getItem(LAST_SPACE_KEY),
     () => null,
   );
+  const exists = (id: string | null | undefined): id is string => !!id && spaceIds.includes(id);
 
   useEffect(() => {
-    if (params.spaceId) localStorage.setItem(LAST_SPACE_KEY, params.spaceId);
-  }, [params.spaceId]);
+    if (exists(params.spaceId)) localStorage.setItem(LAST_SPACE_KEY, params.spaceId);
+    else if (last && !exists(last)) localStorage.removeItem(LAST_SPACE_KEY);
+  });
 
-  return params.spaceId ?? last;
+  if (exists(params.spaceId)) return params.spaceId;
+  return exists(last) ? last : null;
 }
 
-export function AppNav() {
+export function AppNav({ spaceIds }: { spaceIds: string[] }) {
   const pathname = usePathname();
-  const spaceId = useSpaceContext();
+  const spaceId = useSpaceContext(spaceIds);
   const base = spaceId ? `/spaces/${spaceId}` : null;
 
   const items = [

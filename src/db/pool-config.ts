@@ -7,7 +7,8 @@ import type { PoolConfig } from "pg";
  * without verifying the chain (the common setup for its pooler).
  */
 export function poolConfig(connectionString: string, max: number): PoolConfig {
-  const host = new URL(connectionString).hostname;
+  // Empty only during `next build`, which never queries.
+  const host = connectionString ? new URL(connectionString).hostname : "";
   const hosted = host.endsWith(".supabase.com") || host.endsWith(".supabase.co");
   return {
     connectionString,

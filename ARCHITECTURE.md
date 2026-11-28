@@ -23,7 +23,7 @@ Your phone or computer
 - **The app** is the screens and the rules. It checks who you are before showing anything.
 - **The database** stores the details of every purchase.
 - **The files folder** stores the photos and receipts. Only you can open them: there are no public links.
-- For now the database and the files live on **Supabase** (free tier) and the app runs on **Vercel**. This is temporary until we move to our own server. The same code also runs fully on your own computer with Docker.
+- For now the database and the files live on **Supabase** (free tier) and the app runs on **Vercel**. This is temporary until we move to our own server. Running it on your own computer (with `pnpm dev` or Docker) uses the same Supabase project.
 
 ## Decisions we made, and why
 
@@ -35,7 +35,7 @@ Your phone or computer
 | **Categories *and* rooms** | "What is it" and "where does it go" are different questions. Both give useful totals. |
 | **Two prices for discounts** (before / paid) | Shows exactly how much you saved, without needing extra photos. |
 | **EGP only, for now** | Matches today's need. The database already stores a currency per space for later. |
-| **Runs on your own computer, free** | No monthly costs during the trial phase. It can move to a server later without a rewrite. |
+| **Free hosting (Vercel + Supabase free tiers)** | No monthly costs during the trial phase. It can move to a server later without a rewrite. |
 | **Supabase for the database and files, for now** | Free hosting while there's no server. We only use its Postgres and a private Storage bucket, so moving off it is a change of settings, not code. |
 | **Our own sign-in (Better Auth), not Supabase Auth** | Accounts live in our own tables, so they move with the database to any server. |
 | **One owner account** | It's a personal app. Sign-up closes after the first account. |
@@ -55,8 +55,9 @@ Your phone or computer
 ### Stack
 
 - **Next.js 16** (App Router, TypeScript), with **Server Components** and **Server Actions**. There is no separate API layer for the UI.
-- **PostgreSQL 17** via **Drizzle ORM**. Schema in `src/db/schema.ts`, SQL migrations in `drizzle/`.
-- **Better Auth**: email and password sessions stored in our own Postgres. It's self-hosted, with no third-party account.
+- **PostgreSQL 17 on Supabase** via **Drizzle ORM**. Schema in `src/db/schema.ts`, SQL migrations in `drizzle/`.
+- **Supabase Storage** (one private bucket) for photos and receipts.
+- **Better Auth**: email and password sessions stored in our own Postgres tables. Supabase Auth is not used.
 - **sharp** for image processing.
 - **Tailwind CSS 4**. The design system is documented in `DESIGN.md`.
 
@@ -70,7 +71,8 @@ Your phone or computer
 | `src/app/api/spaces/[id]/export` | CSV export (honours list filters) |
 | `src/lib/data.ts` | **Data access layer**: every read goes through `requireUser()` and checks space ownership |
 | `src/lib/actions/` | Server Actions (all writes), with validation |
-| `src/lib/storage/` | `FileStorage` interface with a Supabase Storage driver (used when `NEXT_PUBLIC_SUPABASE_URL` and `SUPABASE_SECRET_KEY` are set) and a local-disk driver |
+| `src/lib/storage/` | `FileStorage` interface with the Supabase Storage driver |
+| `src/lib/env.ts` | All settings, validated. There are no local fallbacks: a missing database or Supabase value stops the app with an error naming it |
 | `src/lib/uploads.ts` | Upload rules shared by the browser and the server (types, 9 MB limit, 10 files) |
 | `src/lib/images.ts` | Upload pipeline: EXIF rotate, strip metadata (GPS), resize, WebP and a thumbnail; PDFs stored as-is |
 | `src/proxy.ts` | Optimistic redirect to sign-in (not a security boundary) |
@@ -91,7 +93,7 @@ user ─┬─< spaces ─┬─< categories
 ### Request flow (adding a purchase)
 
 1. The browser downscales the photos (canvas → JPEG, about 2000 px).
-2. It asks the `prepareUploads` action for one signed upload URL per file (after an ownership check) and PUTs each file straight into `incoming/<spaceId>/` in the private bucket. This keeps requests under Vercel's 4.5 MB body limit. With local-disk storage there are no signed URLs, so the files go with the form (Server Action body limit 25 MB).
+2. It asks the `prepareUploads` action for one signed upload URL per file (after an ownership check) and PUTs each file straight into `incoming/<spaceId>/` in the private bucket. This keeps requests under Vercel's 4.5 MB body limit.
 3. The form is submitted with only the uploaded keys. The action re-checks the session and space ownership and validates the fields. It only accepts keys inside that space's `incoming/` folder, reads them back, and processes them with sharp. The final files are written to storage, and the `incoming/` copies are always deleted.
 4. Inside one DB transaction: find-or-create the category, room and vendor, insert the purchase, then insert the attachment rows.
 5. If anything fails, the written files are deleted. The cache is then revalidated and you're redirected to the purchase.
@@ -100,17 +102,15 @@ Cache Components is on. All user data is request-time (behind `<Suspense>`), and
 
 ### Docker setup
 
-`docker-compose.yml` defines two services and two named volumes:
+`docker-compose.yml` runs one service, `app`, which talks to Supabase like the Vercel deployment does. There is no local database and no volumes.
 
 | Service | What it runs | Port |
 | --- | --- | --- |
-| `db` | `postgres:17-alpine`, data in volume `pgdata` | `127.0.0.1:5434` (host) → 5432 |
 | `app` | Multi-stage image: `pnpm build` → Next.js **standalone** server on Node 24 Alpine, running as a non-root user | `5000` (host) → 3000 |
 
-- **Migrations** run automatically when the `app` container starts (`RUN_MIGRATIONS=true`, via `src/instrumentation.ts`).
-- **Uploads** live in volume `uploads`, mounted at `/data/uploads`. Volumes survive rebuilds; `pnpm backup` dumps the DB and copies the uploads out.
-- **Secrets** come from `.env`, which is not committed. `BETTER_AUTH_SECRET` is required in production, and the app refuses to start without it.
-- **Development** runs only `db` in Docker (`pnpm db:up`) and the app with `pnpm dev`. Env vars default to the Compose database and `./uploads`.
+- **Migrations** run automatically when the container starts (`RUN_MIGRATIONS=true`, via `src/instrumentation.ts`), through `DATABASE_URL_DIRECT`.
+- **Secrets** come from `.env`, which is not committed and is kept out of the image (`.dockerignore`). Compose refuses to start if a required value is missing.
+- **Development:** `pnpm dev` uses the same `.env` and the same Supabase project.
 
 ### Security notes
 
@@ -125,10 +125,10 @@ Cache Components is on. All user data is request-time (behind `<Suspense>`), and
 - Run migrations from your machine (`pnpm db:migrate`). Vercel builds don't run them.
 - The `attachments` bucket is private, with a 9 MB limit and image/PDF types only. Only the server uses the secret key.
 - On Vercel, `BETTER_AUTH_URL` defaults to the production domain and each deployment's own URL is trusted for sign-in.
-- Docker Compose uses Supabase too when `.env` sets `DATABASE_URL`. Without it, it falls back to the bundled `db` service.
+- `pnpm backup` dumps our tables (`pg_dump` in a container) and downloads every file from the bucket.
 
-### Moving off this machine later
+### Moving to our own server later
 
-- **Server:** copy the `pgdata` and `uploads` volumes (or restore a `pnpm backup`) and run the same `docker compose up`.
-- **Cloud storage:** add an S3-compatible driver (R2, MinIO, AWS) behind `FileStorage` in `src/lib/storage`. Feature code doesn't change.
+- **Database:** restore a `pnpm backup` into the server's Postgres and point `DATABASE_URL` at it. Better Auth accounts come along, because they're in our tables.
+- **Files:** keep using Supabase Storage, or add a driver (server disk, S3, R2) behind `FileStorage` in `src/lib/storage`. Feature code doesn't change. A driver without signed upload URLs needs an upload route for the browser to send files to.
 - **Phone install (PWA):** the manifest and icons are already in place; installing just needs the site served over HTTPS.

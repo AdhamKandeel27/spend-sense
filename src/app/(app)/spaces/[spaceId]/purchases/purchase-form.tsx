@@ -38,7 +38,7 @@ export type PurchaseDefaults = {
 type Action = (prev: FormState, fd: FormData) => Promise<FormState>;
 type PrepareUploads = (
   files: UploadRequest[],
-) => Promise<{ slots: { key: string; url: string }[] } | { direct: true } | { error: string }>;
+) => Promise<{ slots: { key: string; url: string }[] } | { error: string }>;
 
 type Picked = { key: string; file: File; url: string | null };
 
@@ -153,8 +153,7 @@ export function PurchaseForm({
   /**
    * Files go straight from the browser to storage first, then the form is
    * submitted with only their keys. That keeps each request far under the
-   * hosting body limit. With local disk storage the server says "direct" and
-   * the files ride along with the form instead.
+   * hosting body limit.
    */
   async function attachFiles(fd: FormData): Promise<boolean> {
     const picked = [
@@ -168,10 +167,6 @@ export function PurchaseForm({
     if ("error" in res) {
       setFileError(res.error);
       return false;
-    }
-    if ("direct" in res) {
-      for (const p of picked) fd.append(p.kind === "photo" ? "photos" : "receipts", p.file, p.file.name);
-      return true;
     }
 
     const results = await Promise.all(
