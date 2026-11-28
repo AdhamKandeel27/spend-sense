@@ -186,10 +186,17 @@ export const purchases = pgTable(
     /** Total before discount; null when there was no discount. */
     originalTotal: bigint("original_total", { mode: "number" }),
     notes: text("notes"),
+    /**
+     * Purchases that share a group id are batches of the same item (bought
+     * 30 m² of tiles, then 15 m² more). A random id, not a reference, so
+     * deleting any one batch leaves the rest grouped. Null = on its own.
+     */
+    groupId: uuid("group_id"),
     ...timestamps,
   },
   (t) => [
     index("purchases_space_date_idx").on(t.spaceId, t.purchasedOn),
+    index("purchases_group_idx").on(t.spaceId, t.groupId),
     index("purchases_category_idx").on(t.categoryId),
     index("purchases_room_idx").on(t.roomId),
     index("purchases_vendor_idx").on(t.vendorId),

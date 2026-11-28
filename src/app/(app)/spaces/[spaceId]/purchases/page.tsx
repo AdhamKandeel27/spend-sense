@@ -2,7 +2,8 @@ import { ArrowLeft, Download, ReceiptText } from "lucide-react";
 import type { Metadata } from "next";
 import Link from "next/link";
 import { Suspense } from "react";
-import { DeckStrip, PurchaseTile, QtyMark, SpaceScope, Thumb } from "@/components/space";
+import { DeckStrip, GroupBadge, PurchaseTile, QtyMark, SpaceScope, Thumb } from "@/components/space";
+import { groupCards } from "@/lib/groups";
 import { ButtonLink, Chip, EmptyState } from "@/components/ui";
 import { getSpaceOptions, getSpaceOverview, listPurchases, type PurchaseFilters as Filters } from "@/lib/data";
 import { formatAmount } from "@/lib/money";
@@ -50,6 +51,8 @@ async function Purchases({ params, searchParams }: Props) {
   );
   const exportHref = `/api/spaces/${space.id}/export${exportParams.size ? `?${exportParams}` : ""}`;
   const filtered = Object.values(filters).some(Boolean);
+  // Batches of the same item show as one tile/row; the footer still counts every purchase.
+  const items = groupCards(rows);
 
   return (
     <SpaceScope space={space}>
@@ -102,7 +105,7 @@ async function Purchases({ params, searchParams }: Props) {
             )
           ) : view === "grid" ? (
             <ul className="grid grid-cols-2 gap-2.5 sm:grid-cols-3 lg:grid-cols-4">
-              {rows.map((p) => (
+              {items.map((p) => (
                 <li key={p.id} className="flex">
                   <PurchaseTile spaceId={space.id} p={p} currency={space.currency} />
                 </li>
@@ -110,7 +113,7 @@ async function Purchases({ params, searchParams }: Props) {
             </ul>
           ) : (
             <ul className="border-t border-line">
-              {rows.map((p) => (
+              {items.map((p) => (
                 <li key={p.id}>
                   <Link
                     href={`/spaces/${space.id}/purchases/${p.id}`}
@@ -120,10 +123,17 @@ async function Purchases({ params, searchParams }: Props) {
                     <div className="min-w-0">
                       <p className="truncate font-semibold">
                         {p.name}
-                        <QtyMark quantity={p.quantity} unit={p.unit} />
+                        {p.group ? (
+                          p.group.quantity != null && <QtyMark quantity={p.group.quantity} unit={p.group.unit} />
+                        ) : (
+                          <QtyMark quantity={p.quantity} unit={p.unit} />
+                        )}
                       </p>
                       <p className="truncate text-[0.8125rem] text-ink-3">
-                        {[p.brand, p.vendorName, formatDate(p.purchasedOn)].filter(Boolean).join(" · ")}
+                        {p.group ? (
+                          <GroupBadge count={p.group.count} className="mr-1.5 align-[1px]" />
+                        ) : null}
+                        {[p.brand, p.group ? null : p.vendorName, formatDate(p.purchasedOn)].filter(Boolean).join(" · ")}
                       </p>
                     </div>
                     <span className="hidden min-w-0 text-[0.8125rem] sm:block">
@@ -134,10 +144,14 @@ async function Purchases({ params, searchParams }: Props) {
                       {p.receiptCount > 0 && <ReceiptText size={16} aria-label="Has receipt" />}
                     </span>
                     <span className="text-right">
-                      <span className="num block font-extrabold">{formatAmount(p.totalPaid)}</span>
-                      {p.originalTotal != null && p.originalTotal > p.totalPaid && (
-                        <span className="num block text-[0.75rem] text-ink-3 line-through">{formatAmount(p.originalTotal)}</span>
-                      )}
+                      <span className="num block font-extrabold">{formatAmount(p.group?.totalPaid ?? p.totalPaid)}</span>
+                      {(() => {
+                        const paid = p.group?.totalPaid ?? p.totalPaid;
+                        const before = p.group ? p.group.originalTotal : p.originalTotal;
+                        return before != null && before > paid ? (
+                          <span className="num block text-[0.75rem] text-ink-3 line-through">{formatAmount(before)}</span>
+                        ) : null;
+                      })()}
                     </span>
                   </Link>
                 </li>

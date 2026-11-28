@@ -1,12 +1,13 @@
-import { ArrowLeft, Check, Download, FileText, Pencil } from "lucide-react";
+import { ArrowLeft, Check, Download, FileText, Layers, Pencil } from "lucide-react";
+import { GroupHistory } from "@/components/group-history";
 import type { Metadata } from "next";
 import Link from "next/link";
 import { Suspense } from "react";
 import { ConfirmDelete } from "@/components/confirm-delete";
 import { SpaceScope } from "@/components/space";
 import { ButtonLink, Chip } from "@/components/ui";
-import { deletePurchase } from "@/lib/actions/purchases";
-import { getPurchase } from "@/lib/data";
+import { deletePurchase, unlinkPurchase } from "@/lib/actions/purchases";
+import { getPurchase, getPurchaseGroup } from "@/lib/data";
 import { formatDay } from "@/lib/dates";
 import { discountPercent, formatAmount } from "@/lib/money";
 import { PageSkeleton } from "../../skeletons";
@@ -27,7 +28,7 @@ export default function PurchasePage(props: Props) {
 async function PurchaseDetail({ params, searchParams }: Props) {
   const { spaceId, purchaseId } = await params;
   const { saved } = await searchParams;
-  const { space, purchase: p } = await getPurchase(spaceId, purchaseId);
+  const [{ space, purchase: p }, group] = await Promise.all([getPurchase(spaceId, purchaseId), getPurchaseGroup(spaceId, purchaseId)]);
 
   const photos = p.attachments.filter((a) => a.kind === "photo");
   const receipts = p.attachments.filter((a) => a.kind === "receipt");
@@ -45,9 +46,14 @@ async function PurchaseDetail({ params, searchParams }: Props) {
           >
             <ArrowLeft size={16} aria-hidden /> Purchases
           </Link>
-          <ButtonLink href={`/spaces/${space.id}/purchases/${p.id}/edit`} variant="secondary">
-            <Pencil size={16} aria-hidden /> Edit
-          </ButtonLink>
+          <div className="flex gap-2">
+            <ButtonLink href={`/spaces/${space.id}/purchases/new?more=${p.id}`} variant="secondary">
+              <Layers size={16} aria-hidden /> Buy more
+            </ButtonLink>
+            <ButtonLink href={`/spaces/${space.id}/purchases/${p.id}/edit`} variant="secondary">
+              <Pencil size={16} aria-hidden /> Edit
+            </ButtonLink>
+          </div>
         </div>
 
         {saved && (
@@ -113,6 +119,14 @@ async function PurchaseDetail({ params, searchParams }: Props) {
               </Row>
               {p.notes && <Row label="Notes"><span className="whitespace-pre-line">{p.notes}</span></Row>}
             </dl>
+
+            <GroupHistory
+              members={group}
+              currentId={p.id}
+              currency={space.currency}
+              hrefFor={(id) => `/spaces/${space.id}/purchases/${id}`}
+              separate={unlinkPurchase.bind(null, space.id, p.id)}
+            />
 
             <section aria-labelledby="receipts-title">
               <h2 id="receipts-title" className="label mb-2.5 text-ink-2">

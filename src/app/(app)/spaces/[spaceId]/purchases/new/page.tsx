@@ -4,10 +4,11 @@ import Link from "next/link";
 import { Suspense } from "react";
 import { SpaceScope } from "@/components/space";
 import { createPurchase, prepareUploads } from "@/lib/actions/purchases";
-import { getSpaceOptions } from "@/lib/data";
+import { findPurchase, getSpaceOptions, isUuid, listLinkCandidates } from "@/lib/data";
 import { todayInCairo } from "@/lib/dates";
+import { toInputAmount } from "@/lib/money";
 import { PageSkeleton } from "../../skeletons";
-import { PurchaseForm } from "../purchase-form";
+import { PurchaseForm, type PurchaseDefaults } from "../purchase-form";
 
 export const metadata: Metadata = { title: "Add purchase" };
 
@@ -23,8 +24,27 @@ export default function NewPurchasePage(props: Props) {
 
 async function NewPurchase({ params, searchParams }: Props) {
   const { spaceId } = await params;
-  const { added } = await searchParams;
-  const { space, categories, rooms, vendors, brands } = await getSpaceOptions(spaceId);
+  const { added, more } = await searchParams;
+  const [{ space, categories, rooms, vendors, brands }, candidates] = await Promise.all([
+    getSpaceOptions(spaceId),
+    listLinkCandidates(spaceId),
+  ]);
+
+  // "Buy more": start from the earlier purchase's details, dated today, already grouped with it.
+  const source = typeof more === "string" && isUuid(more) ? await findPurchase(spaceId, more) : null;
+  const defaults: PurchaseDefaults = source
+    ? {
+        name: source.name,
+        brand: source.brand ?? "",
+        vendorName: source.vendor?.name ?? "",
+        categoryId: source.categoryId ?? "",
+        roomId: source.roomId ?? "",
+        unit: source.unit ?? "",
+        unitPrice: toInputAmount(source.unitPrice),
+        quantity: "1",
+        purchasedOn: todayInCairo(),
+      }
+    : { purchasedOn: todayInCairo(), quantity: "1" };
 
   return (
     <SpaceScope space={space}>
@@ -32,7 +52,7 @@ async function NewPurchase({ params, searchParams }: Props) {
         <Link href={`/spaces/${space.id}`} className="inline-flex items-center gap-1.5 text-[0.875rem] font-semibold text-ink-2 hover:text-ink">
           <ArrowLeft size={16} aria-hidden /> {space.name}
         </Link>
-        <h1 className="mt-3 mb-6 text-title font-extrabold">Add purchase</h1>
+        <h1 className="mt-3 mb-6 text-title font-extrabold">{source ? "Buy more" : "Add purchase"}</h1>
 
         {typeof added === "string" && (
           <p role="status" className="mb-6 flex items-center gap-2 border border-ok/30 bg-[#e7f0ea] px-3 py-2.5 text-[0.875rem] font-medium text-ok">
@@ -46,7 +66,7 @@ async function NewPurchase({ params, searchParams }: Props) {
 
         {/* key resets the form after "Save & add another". */}
         <PurchaseForm
-          key={typeof added === "string" ? added : "new"}
+          key={typeof added === "string" ? added : (source?.id ?? "new")}
           action={createPurchase.bind(null, space.id)}
           prepareUploads={prepareUploads.bind(null, space.id)}
           mode="create"
@@ -55,8 +75,10 @@ async function NewPurchase({ params, searchParams }: Props) {
           rooms={rooms.map((r) => ({ id: r.id, name: r.name }))}
           vendors={vendors.map((v) => ({ id: v.id, name: v.name }))}
           brands={brands}
-          defaults={{ purchasedOn: todayInCairo(), quantity: "1" }}
-          cancelHref={`/spaces/${space.id}`}
+          defaults={defaults}
+          linkCandidates={candidates.map((c) => ({ id: c.id, name: c.name, brand: c.brand, purchasedOn: c.purchasedOn }))}
+          linkTo={source ? { id: source.id, name: source.name, brand: source.brand, purchasedOn: source.purchasedOn } : undefined}
+          cancelHref={source ? `/spaces/${space.id}/purchases/${source.id}` : `/spaces/${space.id}`}
         />
       </main>
     </SpaceScope>

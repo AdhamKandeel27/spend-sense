@@ -4,6 +4,7 @@ import { notFound } from "next/navigation";
 import { db } from "@/db";
 import { after } from "next/server";
 import { attachments, categories, purchases, rooms, spaceShares, spaces, vendors, type Space } from "@/db/schema";
+import { groupCards } from "@/lib/groups";
 import { requireUser } from "@/lib/session";
 
 /* -------------------------------------------------------------------------- */
@@ -156,7 +157,10 @@ async function overviewFor(space: Space, opts: { recent?: number } = {}) {
     .groupBy(rooms.id)
     .orderBy(desc(sql`coalesce(sum(${purchases.totalPaid}), 0)`));
 
-  const recent = await listPurchaseCards(space.id, { limit: opts.recent });
+  // Group before trimming, so an item bought in batches shows its full total
+  // even when its earlier batches are older than the "recent" cut-off.
+  const items = groupCards(await listPurchaseCards(space.id));
+  const recent = opts.recent ? items.slice(0, opts.recent) : items;
   const number = await getSpaceNumber(space);
 
   return {
@@ -207,6 +211,7 @@ export type PurchaseCard = {
   vendorName: string | null;
   photoId: string | null;
   receiptCount: number;
+  groupId: string | null;
 };
 
 function filterConditions(spaceId: string, f: PurchaseFilters) {
@@ -273,6 +278,7 @@ async function listPurchaseCards(
       vendorName: vendors.name,
       photoId: firstPhoto,
       receiptCount,
+      groupId: purchases.groupId,
     })
     .from(purchases)
     .leftJoin(categories, eq(categories.id, purchases.categoryId))
@@ -306,6 +312,70 @@ export async function getPurchase(spaceId: string, purchaseId: string) {
   });
   if (!purchase) notFound();
   return { space, purchase };
+}
+
+/** Like getPurchase, but null instead of a 404 (for optional references such as ?more=). */
+export async function findPurchase(spaceId: string, purchaseId: string) {
+  const space = await getSpace(spaceId);
+  if (!isUuid(purchaseId)) return null;
+  const found = await db.query.purchases.findFirst({
+    where: and(eq(purchases.id, purchaseId), eq(purchases.spaceId, space.id)),
+    with: { vendor: true },
+  });
+  return found ?? null;
+}
+
+/** Every batch in a purchase's group, oldest first (empty when it's on its own). */
+async function groupMembersFor(spaceId: string, groupId: string | null) {
+  if (!groupId) return [];
+  const receiptCount = sql<number>`(
+    select count(*)::int from ${attachments} a
+    where a.purchase_id = ${purchases.id} and a.kind = 'receipt'
+  )`;
+  const rows = await db
+    .select({
+      id: purchases.id,
+      purchasedOn: purchases.purchasedOn,
+      quantity: purchases.quantity,
+      unit: purchases.unit,
+      unitPrice: purchases.unitPrice,
+      totalPaid: purchases.totalPaid,
+      originalTotal: purchases.originalTotal,
+      vendorName: vendors.name,
+      receiptCount,
+    })
+    .from(purchases)
+    .leftJoin(vendors, eq(vendors.id, purchases.vendorId))
+    .where(and(eq(purchases.spaceId, spaceId), eq(purchases.groupId, groupId)))
+    .orderBy(asc(purchases.purchasedOn), asc(purchases.createdAt));
+  return rows.length > 1 ? rows : [];
+}
+
+export type GroupMember = Awaited<ReturnType<typeof groupMembersFor>>[number];
+
+export async function getPurchaseGroup(spaceId: string, purchaseId: string) {
+  const { space, purchase } = await getPurchase(spaceId, purchaseId);
+  return groupMembersFor(space.id, purchase.groupId);
+}
+
+/**
+ * Earlier purchases a new one might be "more of": one entry per item (a
+ * group counts once), newest first, for the add form's suggestion.
+ */
+export async function listLinkCandidates(spaceId: string) {
+  const space = await getSpace(spaceId);
+  const rows = await db
+    .select({ id: purchases.id, name: purchases.name, brand: purchases.brand, purchasedOn: purchases.purchasedOn, groupId: purchases.groupId })
+    .from(purchases)
+    .where(eq(purchases.spaceId, space.id))
+    .orderBy(desc(purchases.purchasedOn), desc(purchases.createdAt));
+  const seen = new Set<string>();
+  return rows.filter((r) => {
+    if (!r.groupId) return true;
+    if (seen.has(r.groupId)) return false;
+    seen.add(r.groupId);
+    return true;
+  });
 }
 
 /** Used by the file route: returns the attachment only if its space belongs to the user. */
@@ -402,7 +472,8 @@ export async function getSharedPurchase(token: string, purchaseId: string) {
     },
   });
   if (!purchase) notFound();
-  return { space, purchase, viewerName: share.name };
+  const group = await groupMembersFor(space.id, purchase.groupId);
+  return { space, purchase, group, viewerName: share.name };
 }
 
 /** Used by the share file route: a photo, only if it belongs to the link's space. */

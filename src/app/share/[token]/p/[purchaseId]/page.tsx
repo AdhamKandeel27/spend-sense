@@ -2,6 +2,7 @@ import { ArrowLeft } from "lucide-react";
 import type { Metadata } from "next";
 import Link from "next/link";
 import { Suspense } from "react";
+import { GroupHistory } from "@/components/group-history";
 import { SpaceScope } from "@/components/space";
 import { Chip } from "@/components/ui";
 import { getSharedPurchase } from "@/lib/data";
@@ -30,7 +31,7 @@ export default function SharedPurchasePage({ params }: Props) {
 /** A purchase's listing for a viewer: same as the owner's page, minus editing, deleting and receipts. */
 async function SharedPurchase({ params }: Pick<Props, "params">) {
   const { token, purchaseId } = await params;
-  const { space, purchase: p, viewerName } = await getSharedPurchase(token, purchaseId);
+  const { space, purchase: p, group, viewerName } = await getSharedPurchase(token, purchaseId);
 
   const pct = discountPercent(p.totalPaid, p.originalTotal);
   const qty = Number(p.quantity);
@@ -95,6 +96,8 @@ async function SharedPurchase({ params }: Pick<Props, "params">) {
                 </Row>
               )}
             </dl>
+
+            <GroupHistory members={group} currentId={p.id} currency={space.currency} hrefFor={(id) => `/share/${token}/p/${id}`} />
           </div>
         </div>
       </main>

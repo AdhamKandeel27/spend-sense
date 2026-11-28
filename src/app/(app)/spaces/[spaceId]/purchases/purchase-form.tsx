@@ -1,6 +1,6 @@
 "use client";
 
-import { Camera, FileText, ImagePlus, Minus, Plus, ReceiptText, Undo2, X } from "lucide-react";
+import { Camera, FileText, ImagePlus, Layers, Minus, Plus, ReceiptText, Undo2, X } from "lucide-react";
 import Link from "next/link";
 import { startTransition, useActionState, useEffect, useId, useMemo, useRef, useState } from "react";
 import { Button, Field } from "@/components/ui";
@@ -15,6 +15,8 @@ import {
   type UploadKind,
   type UploadRequest,
 } from "@/lib/uploads";
+import { formatDay } from "@/lib/dates";
+import { normaliseName } from "@/lib/groups";
 import { discountPercent, formatAmount, parseAmount } from "@/lib/money";
 import { chipCode, chipColor } from "@/lib/palette";
 
@@ -36,6 +38,9 @@ export type PurchaseDefaults = {
   notes?: string;
 };
 
+/** An earlier purchase this one could be "more of". */
+export type LinkTarget = { id: string; name: string; brand: string | null; purchasedOn: string };
+
 type Action = (prev: FormState, fd: FormData) => Promise<FormState>;
 type PrepareUploads = (
   files: UploadRequest[],
@@ -55,7 +60,13 @@ export function PurchaseForm({
   defaults = {},
   existing = [],
   cancelHref,
+  linkCandidates = [],
+  linkTo,
 }: {
+  /** Earlier items to suggest linking to when the name matches. */
+  linkCandidates?: LinkTarget[];
+  /** Pre-linked ("Buy more" on an earlier purchase). */
+  linkTo?: LinkTarget;
   action: Action;
   prepareUploads: PrepareUploads;
   mode: "create" | "edit";
@@ -100,6 +111,24 @@ export function PurchaseForm({
   const [category, setCategory] = useState(v.categoryId ?? "");
   const [room, setRoom] = useState(v.roomId ?? "");
   const [showDiscount, setShowDiscount] = useState(Boolean(v.originalTotal));
+  // "More of" an earlier purchase: set by Buy more, or by accepting the name-match hint.
+  const [name, setName] = useState(v.name ?? "");
+  const [brand, setBrand] = useState(v.brand ?? "");
+  const [linked, setLinked] = useState<LinkTarget | null>(
+    linkTo ?? linkCandidates.find((c) => c.id === v.groupWith) ?? null,
+  );
+  const [dismissed, setDismissed] = useState<Set<string>>(new Set());
+  const suggestion = useMemo(() => {
+    const n = normaliseName(name);
+    if (linked || n.length < 3) return null;
+    const b = normaliseName(brand);
+    return (
+      linkCandidates.find(
+        (c) => !dismissed.has(c.id) && normaliseName(c.name) === n && (!b || !c.brand || normaliseName(c.brand) === b),
+      ) ?? null
+    );
+  }, [name, brand, linked, dismissed, linkCandidates]);
+
   const qtyNum = Number(qty.replace(/,/g, ""));
   const qtyValid = Number.isFinite(qtyNum) && qtyNum > 0;
   // "Price each" and unit appear once there's more than one, or the purchase already uses them.
@@ -294,11 +323,33 @@ export function PurchaseForm({
 
       {/* ---------------- Details ---------------- */}
       <div className="flex flex-col gap-5">
+        {linked && (
+          <div className="flex items-start gap-3 border border-[var(--space-bg)]/40 bg-card p-3">
+            <Layers size={18} aria-hidden className="mt-0.5 shrink-0 text-[var(--space-bg)]" />
+            <p className="min-w-0 flex-1 text-[0.875rem] text-ink-2">
+              Adding more of <strong className="font-semibold text-ink">{linked.name}</strong> (first bought {formatDay(linked.purchasedOn)}).
+              They&rsquo;ll show together as one item.
+            </p>
+            <button
+              type="button"
+              onClick={() => {
+                setDismissed((s) => new Set(s).add(linked.id));
+                setLinked(null);
+              }}
+              className="shrink-0 text-[0.8125rem] font-semibold underline underline-offset-4"
+            >
+              Keep separate
+            </button>
+            <input type="hidden" name="groupWith" value={linked.id} />
+          </div>
+        )}
+
         <Field label="What did you buy?" htmlFor="name" error={err.name}>
           <input
             id="name"
             name="name"
-            defaultValue={v.name}
+            value={name}
+            onChange={(e) => setName(e.target.value)}
             required
             maxLength={140}
             placeholder="Carrara marble slabs"
@@ -309,13 +360,36 @@ export function PurchaseForm({
           />
         </Field>
 
+        {suggestion && (
+          <div role="status" className="-mt-2 flex flex-wrap items-center gap-x-3 gap-y-2 border border-dashed border-line-strong bg-card/60 p-3 text-[0.875rem]">
+            <p className="min-w-0 flex-1 text-ink-2">
+              You bought <strong className="font-semibold text-ink">{suggestion.name}</strong> on {formatDay(suggestion.purchasedOn)}. Is this
+              more of it?
+            </p>
+            <div className="flex gap-2">
+              <Button type="button" variant="secondary" className="min-h-9 px-3 text-[0.8125rem]" onClick={() => setLinked(suggestion)}>
+                <Layers size={15} aria-hidden /> Yes, group them
+              </Button>
+              <Button
+                type="button"
+                variant="ghost"
+                className="min-h-9 px-2.5 text-[0.8125rem]"
+                onClick={() => setDismissed((s) => new Set(s).add(suggestion.id))}
+              >
+                No
+              </Button>
+            </div>
+          </div>
+        )}
+
         {/* Who made it vs. where it was bought: a Bosch dishwasher from Cairo Sales. */}
         <div className="grid grid-cols-2 gap-2.5 sm:gap-4">
           <Field label="Brand" htmlFor="brand">
             <input
               id="brand"
               name="brand"
-              defaultValue={v.brand}
+              value={brand}
+              onChange={(e) => setBrand(e.target.value)}
               list="brands"
               placeholder="e.g. Bosch"
               className="field"

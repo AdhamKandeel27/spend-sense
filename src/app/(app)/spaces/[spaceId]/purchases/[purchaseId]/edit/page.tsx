@@ -4,7 +4,7 @@ import Link from "next/link";
 import { Suspense } from "react";
 import { SpaceScope } from "@/components/space";
 import { prepareUploads, updatePurchase } from "@/lib/actions/purchases";
-import { getPurchase, getSpaceOptions } from "@/lib/data";
+import { getPurchase, getSpaceOptions, listLinkCandidates } from "@/lib/data";
 import { toInputAmount } from "@/lib/money";
 import { PageSkeleton } from "../../../skeletons";
 import { PurchaseForm } from "../../purchase-form";
@@ -23,7 +23,17 @@ export default function EditPurchasePage(props: Props) {
 
 async function EditPurchase({ params }: Props) {
   const { spaceId, purchaseId } = await params;
-  const [{ space, purchase: p }, options] = await Promise.all([getPurchase(spaceId, purchaseId), getSpaceOptions(spaceId)]);
+  const [{ space, purchase: p }, options, candidates] = await Promise.all([
+    getPurchase(spaceId, purchaseId),
+    getSpaceOptions(spaceId),
+    listLinkCandidates(spaceId),
+  ]);
+  // Already grouped purchases are managed from their page (Separate); others can still be linked.
+  const linkCandidates = p.groupId
+    ? []
+    : candidates
+        .filter((c) => c.id !== p.id)
+        .map((c) => ({ id: c.id, name: c.name, brand: c.brand, purchasedOn: c.purchasedOn }));
   const detailHref = `/spaces/${space.id}/purchases/${p.id}`;
 
   return (
@@ -42,6 +52,7 @@ async function EditPurchase({ params }: Props) {
           rooms={options.rooms.map((r) => ({ id: r.id, name: r.name }))}
           vendors={options.vendors.map((v) => ({ id: v.id, name: v.name }))}
           brands={options.brands}
+          linkCandidates={linkCandidates}
           defaults={{
             name: p.name,
             brand: p.brand ?? "",

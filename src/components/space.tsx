@@ -1,8 +1,9 @@
-import { ReceiptText, Settings2 } from "lucide-react";
+import { Layers, ReceiptText, Settings2 } from "lucide-react";
+import type { DisplayCard } from "@/lib/groups";
 import { Thumb } from "@/components/thumb";
 import Link from "next/link";
 import type { CSSProperties, ReactNode } from "react";
-import type { Breakdown, PurchaseCard } from "@/lib/data";
+import type { Breakdown } from "@/lib/data";
 import { discountPercent, formatAmount } from "@/lib/money";
 import { chipCode, chipColor, spaceColor } from "@/lib/palette";
 
@@ -195,14 +196,18 @@ export function PurchaseTile({
   fileBase,
 }: {
   spaceId: string;
-  p: PurchaseCard;
+  /** A purchase, or a group of batches of the same item (see groupCards). */
+  p: DisplayCard;
   currency: string;
   /** Overrides the owner's purchase link (used by share links). */
   href?: string;
   fileBase?: string;
 }) {
   const c = chipColor(p.categoryId ? p.categoryColor : -1);
-  const pct = discountPercent(p.totalPaid, p.originalTotal);
+  const g = p.group;
+  const totalPaid = g?.totalPaid ?? p.totalPaid;
+  const originalTotal = g ? g.originalTotal : p.originalTotal;
+  const pct = discountPercent(totalPaid, originalTotal);
   return (
     <Link
       href={href ?? `/spaces/${spaceId}/purchases/${p.id}`}
@@ -219,23 +224,33 @@ export function PurchaseTile({
             <span className="sr-only">Has receipt</span>
           </span>
         )}
+        {g && <GroupBadge count={g.count} className="absolute bottom-2 left-2" />}
       </div>
       <div aria-hidden className="flex h-1.5" style={{ background: c.bg }} />
       <div className="flex flex-1 flex-col gap-1 p-2.5">
         <p className="line-clamp-2 text-[0.875rem] leading-snug font-semibold">
           {p.name}
-          <QtyMark quantity={p.quantity} unit={p.unit} />
+          {g ? g.quantity != null && <QtyMark quantity={g.quantity} unit={g.unit} /> : <QtyMark quantity={p.quantity} unit={p.unit} />}
         </p>
         {p.brand && <p className="truncate text-[0.75rem] text-ink-3">{p.brand}</p>}
         <p className="mt-auto flex flex-wrap items-baseline gap-x-1.5 pt-1">
-          <span className="num text-[0.9375rem] font-extrabold">{formatAmount(p.totalPaid)}</span>
-          {p.originalTotal != null && p.originalTotal > p.totalPaid && (
-            <span className="num text-[0.75rem] text-ink-3 line-through">{formatAmount(p.originalTotal)}</span>
+          <span className="num text-[0.9375rem] font-extrabold">{formatAmount(totalPaid)}</span>
+          {originalTotal != null && originalTotal > totalPaid && (
+            <span className="num text-[0.75rem] text-ink-3 line-through">{formatAmount(originalTotal)}</span>
           )}
           <span className="sr-only">{currency}</span>
         </p>
       </div>
     </Link>
+  );
+}
+
+/** "2 purchases" marker on an item bought in batches. */
+export function GroupBadge({ count, className = "" }: { count: number; className?: string }) {
+  return (
+    <span className={`inline-flex items-center gap-1 bg-ink px-1.5 py-0.5 text-[0.6875rem] font-bold text-ground ${className}`}>
+      <Layers size={12} aria-hidden /> {count} purchases
+    </span>
   );
 }
 

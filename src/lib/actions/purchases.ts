@@ -149,6 +149,33 @@ async function resolveRefs(tx: Tx, space: Space, data: Parsed) {
   return { categoryId, roomId, vendorId };
 }
 
+/**
+ * "More of" an earlier purchase: returns the group id to join. The first
+ * time an item gets a second batch, the earlier purchase is given a new
+ * group id too. Returns undefined when there's nothing (valid) to link to.
+ */
+async function resolveGroup(tx: Tx, spaceId: string, formData: FormData, selfId?: string) {
+  const target = String(formData.get("groupWith") ?? "");
+  if (!isUuid(target) || target === selfId) return undefined;
+  const found = await tx.query.purchases.findFirst({
+    where: and(eq(purchases.id, target), eq(purchases.spaceId, spaceId)),
+    columns: { id: true, groupId: true },
+  });
+  if (!found) return undefined;
+  if (found.groupId) return found.groupId;
+  const groupId = crypto.randomUUID();
+  await tx.update(purchases).set({ groupId }).where(eq(purchases.id, found.id));
+  return groupId;
+}
+
+/** Takes one purchase out of its group (the others stay together). */
+export async function unlinkPurchase(spaceId: string, purchaseId: string) {
+  const { space, purchase } = await getPurchase(spaceId, purchaseId);
+  if (!purchase.groupId) return;
+  await db.update(purchases).set({ groupId: null }).where(eq(purchases.id, purchase.id));
+  revalidatePath(`/spaces/${space.id}`, "layout");
+}
+
 type Stored = { kind: UploadKind; file: File; processed: ProcessedFile };
 
 const TOO_MANY_FILES = `Attach up to ${MAX_FILES} files at a time.`;
@@ -299,8 +326,10 @@ async function saveNewPurchase(space: Space, formData: FormData, uploads: Upload
   try {
     await db.transaction(async (tx) => {
       const refs = await resolveRefs(tx, space, data);
+      const groupId = (await resolveGroup(tx, space.id, formData)) ?? null;
       await tx.insert(purchases).values({
         id: purchaseId,
+        groupId,
         spaceId: space.id,
         name: data.name,
         brand: data.brand,
@@ -366,9 +395,11 @@ async function saveExistingPurchase(
   try {
     await db.transaction(async (tx) => {
       const refs = await resolveRefs(tx, space, data);
+      const groupId = await resolveGroup(tx, space.id, formData, purchase.id);
       await tx
         .update(purchases)
         .set({
+          ...(groupId ? { groupId } : {}),
           name: data.name,
           brand: data.brand,
           purchasedOn: data.purchasedOn,
