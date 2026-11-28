@@ -1,6 +1,6 @@
 "use client";
 
-import { Camera, FileText, ImagePlus, ReceiptText, Undo2, X } from "lucide-react";
+import { Camera, FileText, ImagePlus, Minus, Plus, ReceiptText, Undo2, X } from "lucide-react";
 import Link from "next/link";
 import { startTransition, useActionState, useEffect, useId, useMemo, useRef, useState } from "react";
 import { Button, Field } from "@/components/ui";
@@ -100,7 +100,15 @@ export function PurchaseForm({
   const [category, setCategory] = useState(v.categoryId ?? "");
   const [room, setRoom] = useState(v.roomId ?? "");
   const [showDiscount, setShowDiscount] = useState(Boolean(v.originalTotal));
-  const [showQty, setShowQty] = useState(Boolean(v.unitPrice) || (v.quantity != null && v.quantity !== "1"));
+  const qtyNum = Number(qty.replace(/,/g, ""));
+  const qtyValid = Number.isFinite(qtyNum) && qtyNum > 0;
+  // "Price each" and unit appear once there's more than one, or the purchase already uses them.
+  const showEach = (qtyValid && qtyNum !== 1) || Boolean(v.unitPrice) || Boolean(v.unit);
+  // Changing the quantity or price each recalculates the total again.
+  const changeQty = (q: string) => {
+    setQty(q);
+    setTotalTouched(false);
+  };
 
   // Free preview object URLs when the form unmounts (removals free their own).
   const urls = useRef(new Set<string>());
@@ -341,35 +349,76 @@ export function PurchaseForm({
 
         {/* Price block */}
         <div className="border border-line bg-card p-4">
-          <Field label={`Total paid (${currency})`} htmlFor="totalPaid" error={err.totalPaid}>
-            <input
-              id="totalPaid"
-              name="totalPaid"
-              inputMode="decimal"
-              value={totalTouched ? total : computedTotal != null ? (computedTotal / 100).toString() : total}
-              onChange={(e) => {
-                setTotal(e.target.value);
-                setTotalTouched(e.target.value !== "");
-              }}
-              placeholder="0"
-              className="field num text-[1.5rem] font-extrabold"
-              aria-invalid={!!err.totalPaid}
-              aria-describedby={err.totalPaid ? "totalPaid-error" : undefined}
-            />
-          </Field>
-          {!totalTouched && computedTotal != null && (
-            <p className="mt-1.5 text-[0.8125rem] text-ink-3">Calculated from quantity × unit price. Type to override.</p>
+          <div className="grid grid-cols-[minmax(0,1fr)_auto] items-start gap-2.5">
+            <Field label={`Total paid (${currency})`} htmlFor="totalPaid" error={err.totalPaid}>
+              <input
+                id="totalPaid"
+                name="totalPaid"
+                inputMode="decimal"
+                value={totalTouched ? total : computedTotal != null ? (computedTotal / 100).toString() : total}
+                onChange={(e) => {
+                  setTotal(e.target.value);
+                  setTotalTouched(e.target.value !== "");
+                }}
+                placeholder="0"
+                className="field num text-[1.5rem] font-extrabold"
+                aria-invalid={!!err.totalPaid}
+                aria-describedby={err.totalPaid ? "totalPaid-error" : undefined}
+              />
+            </Field>
+            <Field label="Quantity" htmlFor="quantity" error={err.quantity}>
+              <QuantityStepper value={qty} onChange={changeQty} invalid={!!err.quantity} />
+            </Field>
+          </div>
+
+          {showEach && (
+            <div className="mt-4 grid grid-cols-[minmax(0,1.4fr)_minmax(0,1fr)] gap-2.5">
+              <Field label={`Price each (${currency})`} htmlFor="unitPrice" error={err.unitPrice}>
+                <input
+                  id="unitPrice"
+                  name="unitPrice"
+                  inputMode="decimal"
+                  value={unitPrice}
+                  onChange={(e) => {
+                    setUnitPrice(e.target.value);
+                    setTotalTouched(false);
+                  }}
+                  placeholder="0"
+                  className="field num"
+                  aria-invalid={!!err.unitPrice}
+                />
+              </Field>
+              <Field label="Unit (optional)" htmlFor="unit">
+                <input id="unit" name="unit" defaultValue={v.unit} list="units" placeholder="pcs, m²…" className="field" maxLength={20} />
+              </Field>
+              <datalist id="units">
+                {["pcs", "m²", "m", "box", "set", "kg", "L", "roll"].map((u) => (
+                  <option key={u} value={u} />
+                ))}
+              </datalist>
+            </div>
           )}
+
+          <p className="mt-1.5 text-[0.8125rem] text-ink-3" aria-live="polite">
+            {showEach && !totalTouched && computedTotal != null && qtyValid ? (
+              <>
+                <span className="num">
+                  {formatQty(qtyNum)} × {formatAmount(parseAmount(unitPrice) ?? 0)} = {formatAmount(computedTotal)}
+                </span>
+                . Type a total to override.
+              </>
+            ) : showEach && qtyValid && effectiveTotal != null && !parseAmount(unitPrice) ? (
+              <>
+                That&apos;s <span className="num">{formatAmount(Math.round(effectiveTotal / qtyNum))}</span> each. Or enter the price each
+                to calculate the total.
+              </>
+            ) : null}
+          </p>
 
           <div className="mt-3 flex flex-wrap gap-x-4 gap-y-2">
             {!showDiscount && (
               <button type="button" className="text-[0.875rem] font-semibold underline underline-offset-4" onClick={() => setShowDiscount(true)}>
                 It was discounted
-              </button>
-            )}
-            {!showQty && (
-              <button type="button" className="text-[0.875rem] font-semibold underline underline-offset-4" onClick={() => setShowQty(true)}>
-                Bought by quantity (m², pcs…)
               </button>
             )}
           </div>
@@ -399,42 +448,6 @@ export function PurchaseForm({
             </div>
           )}
 
-          {showQty && (
-            <div className="mt-4 grid grid-cols-[minmax(0,1fr)_minmax(0,1fr)_minmax(0,1.3fr)] gap-2.5">
-              <Field label="Quantity" htmlFor="quantity" error={err.quantity}>
-                <input
-                  id="quantity"
-                  name="quantity"
-                  inputMode="decimal"
-                  value={qty}
-                  onChange={(e) => setQty(e.target.value)}
-                  className="field num"
-                  aria-invalid={!!err.quantity}
-                />
-              </Field>
-              <Field label="Unit" htmlFor="unit">
-                <input id="unit" name="unit" defaultValue={v.unit} list="units" placeholder="m²" className="field" maxLength={20} />
-              </Field>
-              <Field label="Unit price" htmlFor="unitPrice" error={err.unitPrice}>
-                <input
-                  id="unitPrice"
-                  name="unitPrice"
-                  inputMode="decimal"
-                  value={unitPrice}
-                  onChange={(e) => setUnitPrice(e.target.value)}
-                  placeholder="0"
-                  className="field num"
-                  aria-invalid={!!err.unitPrice}
-                />
-              </Field>
-              <datalist id="units">
-                {["m²", "m", "pcs", "box", "set", "kg", "L", "roll"].map((u) => (
-                  <option key={u} value={u} />
-                ))}
-              </datalist>
-            </div>
-          )}
-          {!showQty && <input type="hidden" name="quantity" value={qty} />}
         </div>
 
         {/* Filing */}
@@ -565,6 +578,46 @@ export function PurchaseForm({
         </div>
       </div>
     </form>
+  );
+}
+
+function formatQty(q: number) {
+  return new Intl.NumberFormat("en", { maximumFractionDigits: 3 }).format(q);
+}
+
+/** − [n] + : big tap targets for whole items; the box still takes decimals like 12.5 (m²). */
+function QuantityStepper({ value, onChange, invalid }: { value: string; onChange: (v: string) => void; invalid: boolean }) {
+  const n = Number(value.replace(/,/g, ""));
+  const valid = Number.isFinite(n) && n > 0;
+  const step = (d: number) => {
+    const next = Math.round(((valid ? n : 1) + d) * 1000) / 1000;
+    onChange(String(Math.max(1, next)));
+  };
+  const btn =
+    "grid w-11 shrink-0 place-items-center text-ink hover:bg-black/5 active:bg-black/10 disabled:text-ink-3 disabled:hover:bg-transparent";
+  return (
+    <div
+      className={`flex min-h-[2.875rem] items-stretch border bg-card transition-[border-color,box-shadow] duration-150 focus-within:border-ink focus-within:shadow-[inset_0_0_0_1px_var(--color-ink)] ${
+        invalid ? "border-danger shadow-[inset_0_0_0_1px_var(--color-danger)]" : "border-line-strong"
+      }`}
+    >
+      <button type="button" className={btn} onClick={() => step(-1)} disabled={!valid || n <= 1} aria-label="One fewer">
+        <Minus size={18} aria-hidden />
+      </button>
+      <input
+        id="quantity"
+        name="quantity"
+        inputMode="decimal"
+        value={value}
+        onChange={(e) => onChange(e.target.value)}
+        onFocus={(e) => e.target.select()}
+        className="num w-12 min-w-0 bg-transparent text-center text-[1.125rem] font-bold outline-none"
+        aria-invalid={invalid}
+      />
+      <button type="button" className={btn} onClick={() => step(1)} aria-label="One more">
+        <Plus size={18} aria-hidden />
+      </button>
+    </div>
   );
 }
 

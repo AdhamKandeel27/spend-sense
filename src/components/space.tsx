@@ -200,7 +200,10 @@ export function PurchaseTile({ spaceId, p, currency }: { spaceId: string; p: Pur
       </div>
       <div aria-hidden className="flex h-1.5" style={{ background: c.bg }} />
       <div className="flex flex-1 flex-col gap-1 p-2.5">
-        <p className="line-clamp-2 text-[0.875rem] leading-snug font-semibold">{p.name}</p>
+        <p className="line-clamp-2 text-[0.875rem] leading-snug font-semibold">
+          {p.name}
+          <QtyMark quantity={p.quantity} unit={p.unit} />
+        </p>
         {p.brand && <p className="truncate text-[0.75rem] text-ink-3">{p.brand}</p>}
         <p className="mt-auto flex flex-wrap items-baseline gap-x-1.5 pt-1">
           <span className="num text-[0.9375rem] font-extrabold">{formatAmount(p.totalPaid)}</span>
@@ -212,4 +215,12 @@ export function PurchaseTile({ spaceId, p, currency }: { spaceId: string; p: Pur
       </div>
     </Link>
   );
+}
+
+/** " × 2" (or " · 12.5 m²") after a name, when it's more than one of something. */
+export function QtyMark({ quantity, unit }: { quantity: string; unit: string | null }) {
+  const q = Number(quantity);
+  if (!Number.isFinite(q) || (q === 1 && !unit)) return null;
+  const n = new Intl.NumberFormat("en", { maximumFractionDigits: 3 }).format(q);
+  return <span className="num ml-1.5 font-bold whitespace-nowrap text-ink-2">{unit ? `· ${n} ${unit}` : `× ${n}`}</span>;
 }

@@ -2,7 +2,7 @@ import { ArrowLeft, Download, ReceiptText } from "lucide-react";
 import type { Metadata } from "next";
 import Link from "next/link";
 import { Suspense } from "react";
-import { DeckStrip, PurchaseTile, SpaceScope, Thumb } from "@/components/space";
+import { DeckStrip, PurchaseTile, QtyMark, SpaceScope, Thumb } from "@/components/space";
 import { ButtonLink, Chip, EmptyState } from "@/components/ui";
 import { getSpaceOptions, getSpaceOverview, listPurchases, type PurchaseFilters as Filters } from "@/lib/data";
 import { formatAmount } from "@/lib/money";
@@ -118,7 +118,10 @@ async function Purchases({ params, searchParams }: Props) {
                   >
                     <Thumb photoId={p.photoId} alt="" className="size-14" />
                     <div className="min-w-0">
-                      <p className="truncate font-semibold">{p.name}</p>
+                      <p className="truncate font-semibold">
+                        {p.name}
+                        <QtyMark quantity={p.quantity} unit={p.unit} />
+                      </p>
                       <p className="truncate text-[0.8125rem] text-ink-3">
                         {[p.brand, p.vendorName, formatDate(p.purchasedOn)].filter(Boolean).join(" · ")}
                       </p>

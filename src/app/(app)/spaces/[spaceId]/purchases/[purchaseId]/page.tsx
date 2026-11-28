@@ -93,9 +93,7 @@ async function PurchaseDetail({ params, searchParams }: Props) {
                   {p.unit ? ` ${p.unit}` : ""}
                   {p.unitPrice != null
                     ? ` × ${formatAmount(p.unitPrice)} ${space.currency}${p.unit ? ` / ${p.unit}` : " each"}`
-                    : p.unit
-                      ? ""
-                      : " items"}
+                    : `${p.unit ? "" : " items"} · ${formatAmount(Math.round(p.totalPaid / qty))} ${space.currency} each`}
                 </p>
               )}
             </div>
