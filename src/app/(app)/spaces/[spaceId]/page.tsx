@@ -4,7 +4,7 @@ import { Suspense } from "react";
 import { DeckLegend, DeckStrip, PurchaseTile, SpaceHeader, SpaceScope } from "@/components/space";
 import { ButtonLink, EmptyState } from "@/components/ui";
 import { getSpaceOverview, spaceCode } from "@/lib/data";
-import { formatAmount } from "@/lib/money";
+import { Money } from "@/components/money";
 import { OverviewSkeleton } from "./skeletons";
 
 export const metadata: Metadata = { title: "Overview" };
@@ -61,7 +61,7 @@ async function Overview({ params }: { params: PageProps<"/spaces/[spaceId]">["pa
                           >
                             {r.name}
                           </Link>
-                          <span className="num text-right font-semibold">{formatAmount(r.total)}</span>
+                          <Money minor={r.total} className="num text-right font-semibold" />
                         </li>
                       ))}
                     </ul>

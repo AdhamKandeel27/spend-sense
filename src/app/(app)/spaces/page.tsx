@@ -4,7 +4,8 @@ import Link from "next/link";
 import { Suspense } from "react";
 import { ButtonLink, PageTitle } from "@/components/ui";
 import { listSpaces } from "@/lib/data";
-import { formatAmount } from "@/lib/money";
+import { Money } from "@/components/money";
+import { PrivacyToggle } from "@/components/privacy-toggle";
 import { spaceColor } from "@/lib/palette";
 import { NewSpaceForm } from "./new-space-form";
 
@@ -41,9 +42,12 @@ async function SpacesList() {
     <>
       <PageTitle
         actions={
-          <ButtonLink href="/spaces/new" variant="secondary">
-            <Plus size={18} aria-hidden /> New space
-          </ButtonLink>
+          <>
+            <PrivacyToggle className="text-ink-2 hover:text-ink lg:hidden" />
+            <ButtonLink href="/spaces/new" variant="secondary">
+              <Plus size={18} aria-hidden /> New space
+            </ButtonLink>
+          </>
         }
       >
         Your spaces
@@ -63,7 +67,7 @@ async function SpacesList() {
                   <span className="chip-code opacity-75">SPACE {String(i + 1).padStart(2, "0")}</span>
                 </div>
                 <div className="mt-6 text-[2rem] leading-none font-extrabold tracking-[-0.02em]">
-                  <span className="num">{formatAmount(s.totalPaid)}</span>
+                  <Money minor={s.totalPaid} className="num" />
                   <span className="ml-1.5 text-[0.9375rem] font-semibold opacity-80">{s.currency}</span>
                 </div>
                 <div className="mt-2 text-[0.875rem] opacity-85">
@@ -72,7 +76,7 @@ async function SpacesList() {
                     <>
                       {" · "}
                       <span className="num px-1.5 py-0.5 font-bold" style={{ background: c.accent, color: "#1b1e23" }}>
-                        {formatAmount(s.totalSaved)} saved
+                        <Money minor={s.totalSaved} /> saved
                       </span>
                     </>
                   )}

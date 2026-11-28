@@ -3,7 +3,7 @@ import Link from "next/link";
 import type { GroupMember } from "@/lib/data";
 import { formatDay } from "@/lib/dates";
 import { summarise } from "@/lib/groups";
-import { formatAmount } from "@/lib/money";
+import { Money } from "./money";
 import { SubmitButton } from "./submit-button";
 
 const fmtQty = (q: number) => new Intl.NumberFormat("en", { maximumFractionDigits: 3 }).format(q);
@@ -42,12 +42,16 @@ export function GroupHistory({
           <p className="num mt-0.5 text-[0.875rem] text-ink-2">
             {qty != null && (qty !== members.length || sum.unit) ? `${fmtQty(qty)}${sum.unit ? ` ${sum.unit}` : " items"} · ` : ""}
             <strong className="text-ink">
-              {formatAmount(sum.totalPaid)} {currency}
+              <Money minor={sum.totalPaid} /> {currency}
             </strong>{" "}
             in total
-            {avg != null && (qty !== members.length || sum.unit)
-              ? ` · avg ${formatAmount(avg)} ${currency}${sum.unit ? ` / ${sum.unit}` : " each"}`
-              : ""}
+            {avg != null && (qty !== members.length || sum.unit) && (
+              <>
+                {" · avg "}
+                <Money minor={avg} /> {currency}
+                {sum.unit ? ` / ${sum.unit}` : " each"}
+              </>
+            )}
           </p>
         </div>
       </div>
@@ -65,18 +69,19 @@ export function GroupHistory({
                   {current && <span className="ml-2 bg-ochre px-1 text-[0.6875rem] font-bold text-ink">THIS ONE</span>}
                 </span>
                 <span className="num block truncate text-[0.8125rem] text-ink-3">
-                  {[
-                    `${fmtQty(q)}${m.unit ? ` ${m.unit}` : q === 1 ? " item" : " items"}`,
-                    q !== 1 && each != null ? `${formatAmount(each)} each` : null,
-                    m.vendorName,
-                  ]
-                    .filter(Boolean)
-                    .join(" · ")}
+                  {`${fmtQty(q)}${m.unit ? ` ${m.unit}` : q === 1 ? " item" : " items"}`}
+                  {q !== 1 && each != null && (
+                    <>
+                      {" · "}
+                      <Money minor={each} /> each
+                    </>
+                  )}
+                  {m.vendorName && ` · ${m.vendorName}`}
                 </span>
               </span>
               <span className="flex shrink-0 items-center gap-2">
                 {m.receiptCount > 0 && <ReceiptText size={15} aria-label="Has receipt" className="text-ink-3" />}
-                <span className="num font-extrabold">{formatAmount(m.totalPaid)}</span>
+                <Money minor={m.totalPaid} className="num font-extrabold" />
               </span>
             </>
           );

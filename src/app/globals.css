@@ -210,6 +210,22 @@ input[type="date"].field {
     loading-breathe 1.6s ease-in-out 750ms infinite;
 }
 
+/* Privacy: the data-hide-money attribute on the root element swaps every
+   amount for dots, and masks amount inputs on the purchase form. */
+.money-mask {
+  display: none;
+  letter-spacing: 0.08em;
+}
+[data-hide-money] .money-value {
+  display: none;
+}
+[data-hide-money] .money-mask {
+  display: inline;
+}
+[data-hide-money] .money-input {
+  -webkit-text-security: disc;
+}
+
 /* Button busy state: an even ring in the button's own text colour. It fades
    in after a short beat so quick actions don't flash a spinner. */
 @keyframes btn-spin {

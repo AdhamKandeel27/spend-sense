@@ -17,7 +17,8 @@ import {
 } from "@/lib/uploads";
 import { formatDay } from "@/lib/dates";
 import { normaliseName } from "@/lib/groups";
-import { discountPercent, formatAmount, parseAmount } from "@/lib/money";
+import { Money } from "@/components/money";
+import { discountPercent, parseAmount } from "@/lib/money";
 import { chipCode, chipColor } from "@/lib/palette";
 
 type Option = { id: string; name: string; color?: number };
@@ -436,7 +437,7 @@ export function PurchaseForm({
                   setTotalTouched(e.target.value !== "");
                 }}
                 placeholder="0"
-                className="field num text-[1.5rem] font-extrabold"
+                className="field money-input num text-[1.5rem] font-extrabold"
                 aria-invalid={!!err.totalPaid}
                 aria-describedby={err.totalPaid ? "totalPaid-error" : undefined}
               />
@@ -459,7 +460,7 @@ export function PurchaseForm({
                     setTotalTouched(false);
                   }}
                   placeholder="0"
-                  className="field num"
+                  className="field money-input num"
                   aria-invalid={!!err.unitPrice}
                 />
               </Field>
@@ -478,13 +479,13 @@ export function PurchaseForm({
             {showEach && !totalTouched && computedTotal != null && qtyValid ? (
               <>
                 <span className="num">
-                  {formatQty(qtyNum)} × {formatAmount(parseAmount(unitPrice) ?? 0)} = {formatAmount(computedTotal)}
+                  {formatQty(qtyNum)} × <Money minor={parseAmount(unitPrice) ?? 0} /> = <Money minor={computedTotal} />
                 </span>
                 . Type a total to override.
               </>
             ) : showEach && qtyValid && effectiveTotal != null && !parseAmount(unitPrice) ? (
               <>
-                That&apos;s <span className="num">{formatAmount(Math.round(effectiveTotal / qtyNum))}</span> each. Or enter the price each
+                That&apos;s <Money minor={Math.round(effectiveTotal / qtyNum)} className="num" /> each. Or enter the price each
                 to calculate the total.
               </>
             ) : null}
@@ -508,7 +509,7 @@ export function PurchaseForm({
                   value={original}
                   onChange={(e) => setOriginal(e.target.value)}
                   placeholder="0"
-                  className="field num"
+                  className="field money-input num"
                   aria-invalid={!!err.originalTotal}
                 />
               </Field>
@@ -516,7 +517,9 @@ export function PurchaseForm({
                 {pct != null && effectiveTotal != null && originalMinor != null ? (
                   <>
                     <span className="num inline-block bg-ochre px-1.5 py-0.5 text-[0.875rem] font-bold">−{pct}%</span>
-                    <span className="num mt-1 block text-[0.8125rem] text-ink-2">saved {formatAmount(originalMinor - effectiveTotal)}</span>
+                    <span className="num mt-1 block text-[0.8125rem] text-ink-2">
+                      saved <Money minor={originalMinor - effectiveTotal} />
+                    </span>
                   </>
                 ) : null}
               </div>

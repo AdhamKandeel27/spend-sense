@@ -4,6 +4,7 @@ import { LayoutGrid, Layers, List, Plus, Settings2, UserRound } from "lucide-rea
 import Link from "next/link";
 import { useParams, usePathname } from "next/navigation";
 import { useEffect, useSyncExternalStore } from "react";
+import { PrivacyToggle } from "@/components/privacy-toggle";
 import { Wordmark } from "@/components/wordmark";
 
 const LAST_SPACE_KEY = "spend-sense:last-space";
@@ -129,7 +130,8 @@ export function AppNav({ spaceIds }: { spaceIds: string[] }) {
             </li>
           )}
         </ul>
-        <div className="mt-auto">
+        <div className="mt-auto flex flex-col gap-0.5">
+          <PrivacyToggle label className="justify-start px-2 font-semibold text-ink-2 hover:bg-ground/70 hover:text-ink" />
           <RailLink {...items[3]} label="Account" />
         </div>
       </aside>

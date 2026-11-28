@@ -3,7 +3,7 @@ import { Suspense } from "react";
 import { DeckLegend, DeckStrip, PurchaseTile, SpaceHeader, SpaceScope } from "@/components/space";
 import { EmptyState } from "@/components/ui";
 import { getSharedOverview, spaceCode } from "@/lib/data";
-import { formatAmount } from "@/lib/money";
+import { Money } from "@/components/money";
 import { OverviewSkeleton } from "../../(app)/spaces/[spaceId]/skeletons";
 import { ViewOnlyNote } from "./view-only-note";
 
@@ -63,7 +63,7 @@ async function SharedSpace({ params }: Pick<Props, "params">) {
                       {o.byRoom.slice(0, 6).map((r) => (
                         <li key={r.id ?? "none"} className="contents">
                           <span className="truncate">{r.name}</span>
-                          <span className="num text-right font-semibold">{formatAmount(r.total)}</span>
+                          <Money minor={r.total} className="num text-right font-semibold" />
                         </li>
                       ))}
                     </ul>

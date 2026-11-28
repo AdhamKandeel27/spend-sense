@@ -4,7 +4,9 @@ import { Thumb } from "@/components/thumb";
 import Link from "next/link";
 import type { CSSProperties, ReactNode } from "react";
 import type { Breakdown } from "@/lib/data";
-import { discountPercent, formatAmount } from "@/lib/money";
+import { Money } from "@/components/money";
+import { PrivacyToggle } from "@/components/privacy-toggle";
+import { discountPercent } from "@/lib/money";
 import { chipCode, chipColor, spaceColor } from "@/lib/palette";
 
 type SpaceLike = { id: string; name: string; color: number; currency: string };
@@ -47,11 +49,12 @@ export function SpaceHeader({
             </Link>
           )}
           <span className="chip-code shrink-0 opacity-75">{code}</span>
+          <PrivacyToggle className={`ml-auto shrink-0 opacity-80 hover:opacity-100 ${viewOnly ? "-mr-2" : "lg:-mr-2"}`} />
           {!viewOnly && (
             <Link
               href={`/spaces/${space.id}/settings`}
               aria-label="Space settings"
-              className="-mr-2 ml-auto grid size-10 shrink-0 place-items-center opacity-80 hover:opacity-100 lg:hidden"
+              className="-mr-2 grid size-10 shrink-0 place-items-center opacity-80 hover:opacity-100 lg:hidden"
             >
               <Settings2 size={20} aria-hidden />
             </Link>
@@ -59,14 +62,14 @@ export function SpaceHeader({
         </div>
         <p className="mt-6 text-[0.8125rem] font-medium opacity-80">{label}</p>
         <p className="mt-1 text-total font-extrabold tracking-[-0.025em] lg:text-[3.5rem]">
-          <span className="num">{formatAmount(totalPaid)}</span>
+          <Money minor={totalPaid} className="num" />
           <span className="ml-2 text-[1rem] font-semibold tracking-normal opacity-80">{space.currency}</span>
         </p>
         <p className="mt-2.5 flex flex-wrap items-center gap-x-2 gap-y-1 text-[0.875rem]">
           <span className="opacity-90">{count === 1 ? "1 purchase" : `${count} purchases`}</span>
           {totalSaved > 0 && (
             <span className="num bg-[var(--space-accent)] px-1.5 py-0.5 font-bold text-ink">
-              {formatAmount(totalSaved)} {space.currency} saved
+              <Money minor={totalSaved} /> {space.currency} saved
             </span>
           )}
         </p>
@@ -120,7 +123,8 @@ export function DeckStrip({
         );
         const className = `deck-chip @container flex min-w-3 flex-col justify-between overflow-hidden p-1.5 transition-opacity duration-200 ${dim ? "opacity-30" : ""}`;
         const style = { flex: `${Math.max(share, 0.015)} 1 0`, background: c.bg, color: c.fg, animationDelay: `${i * 45}ms` };
-        const title = `${it.name}: ${formatAmount(it.total)} (${pct}%)`;
+        // No amount here: tooltips and labels can't be hidden by the privacy toggle.
+        const title = `${it.name}: ${pct}%`;
         return interactive ? (
           <Link
             key={key}
@@ -177,7 +181,7 @@ export function DeckLegend({ items, currency, limit = 4 }: { items: Breakdown[];
               <span className="shrink-0 text-ink-3">{it.count}</span>
             </dt>
             <dd className="num text-right font-semibold">
-              {formatAmount(it.total)} <span className="text-[0.75rem] font-medium text-ink-3">{currency}</span>
+              <Money minor={it.total} /> <span className="text-[0.75rem] font-medium text-ink-3">{currency}</span>
             </dd>
           </div>
         );
@@ -234,9 +238,9 @@ export function PurchaseTile({
         </p>
         {p.brand && <p className="truncate text-[0.75rem] text-ink-3">{p.brand}</p>}
         <p className="mt-auto flex flex-wrap items-baseline gap-x-1.5 pt-1">
-          <span className="num text-[0.9375rem] font-extrabold">{formatAmount(totalPaid)}</span>
+          <Money minor={totalPaid} className="num text-[0.9375rem] font-extrabold" />
           {originalTotal != null && originalTotal > totalPaid && (
-            <span className="num text-[0.75rem] text-ink-3 line-through">{formatAmount(originalTotal)}</span>
+            <Money minor={originalTotal} className="num text-[0.75rem] text-ink-3 line-through" />
           )}
           <span className="sr-only">{currency}</span>
         </p>

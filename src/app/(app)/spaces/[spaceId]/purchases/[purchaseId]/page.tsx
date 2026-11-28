@@ -9,7 +9,9 @@ import { ButtonLink, Chip } from "@/components/ui";
 import { deletePurchase, unlinkPurchase } from "@/lib/actions/purchases";
 import { getPurchase, getPurchaseGroup } from "@/lib/data";
 import { formatDay } from "@/lib/dates";
-import { discountPercent, formatAmount } from "@/lib/money";
+import { Money } from "@/components/money";
+import { PrivacyToggle } from "@/components/privacy-toggle";
+import { discountPercent } from "@/lib/money";
 import { PageSkeleton } from "../../skeletons";
 import { Gallery } from "./gallery";
 
@@ -46,12 +48,13 @@ async function PurchaseDetail({ params, searchParams }: Props) {
           >
             <ArrowLeft size={16} aria-hidden /> Purchases
           </Link>
-          <div className="flex gap-2">
+          <div className="flex items-center gap-2">
+            <PrivacyToggle className="text-ink-2 hover:text-ink lg:hidden" />
             <ButtonLink href={`/spaces/${space.id}/purchases/new?more=${p.id}`} variant="secondary">
               <Layers size={16} aria-hidden /> Buy more
             </ButtonLink>
-            <ButtonLink href={`/spaces/${space.id}/purchases/${p.id}/edit`} variant="secondary">
-              <Pencil size={16} aria-hidden /> Edit
+            <ButtonLink href={`/spaces/${space.id}/purchases/${p.id}/edit`} variant="secondary" aria-label="Edit" className="px-3 sm:px-4">
+              <Pencil size={16} aria-hidden /> <span className="hidden sm:inline">Edit</span>
             </ButtonLink>
           </div>
         </div>
@@ -79,7 +82,7 @@ async function PurchaseDetail({ params, searchParams }: Props) {
                 <div>
                   <p className="text-[0.8125rem] font-medium text-ink-2">Paid</p>
                   <p className="text-[2.25rem] leading-none font-extrabold tracking-[-0.02em]">
-                    <span className="num">{formatAmount(p.totalPaid)}</span>
+                    <Money minor={p.totalPaid} className="num" />
                     <span className="ml-1.5 text-[0.9375rem] font-semibold tracking-normal text-ink-3">{space.currency}</span>
                   </p>
                 </div>
@@ -87,8 +90,10 @@ async function PurchaseDetail({ params, searchParams }: Props) {
                   <div className="text-right">
                     <span className="num inline-block bg-ochre px-1.5 py-0.5 font-bold">−{pct}%</span>
                     <p className="num mt-1 text-[0.875rem] text-ink-2">
-                      was <span className="line-through">{formatAmount(p.originalTotal)}</span> · saved{" "}
-                      <strong className="text-ink">{formatAmount(p.originalTotal - p.totalPaid)}</strong>
+                      was <Money minor={p.originalTotal} className="line-through" /> · saved{" "}
+                      <strong className="text-ink">
+                        <Money minor={p.originalTotal - p.totalPaid} />
+                      </strong>
                     </p>
                   </div>
                 )}
@@ -97,9 +102,18 @@ async function PurchaseDetail({ params, searchParams }: Props) {
                 <p className="num border-t border-line px-4 py-2.5 text-[0.9375rem] text-ink-2">
                   {formatQty(qty)}
                   {p.unit ? ` ${p.unit}` : ""}
-                  {p.unitPrice != null
-                    ? ` × ${formatAmount(p.unitPrice)} ${space.currency}${p.unit ? ` / ${p.unit}` : " each"}`
-                    : `${p.unit ? "" : " items"} · ${formatAmount(Math.round(p.totalPaid / qty))} ${space.currency} each`}
+                  {p.unitPrice != null ? (
+                    <>
+                      {" × "}
+                      <Money minor={p.unitPrice} /> {space.currency}
+                      {p.unit ? ` / ${p.unit}` : " each"}
+                    </>
+                  ) : (
+                    <>
+                      {`${p.unit ? "" : " items"} · `}
+                      <Money minor={Math.round(p.totalPaid / qty)} /> {space.currency} each
+                    </>
+                  )}
                 </p>
               )}
             </div>

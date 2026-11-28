@@ -6,7 +6,8 @@ import { DeckStrip, GroupBadge, PurchaseTile, QtyMark, SpaceScope, Thumb } from 
 import { groupCards } from "@/lib/groups";
 import { ButtonLink, Chip, EmptyState } from "@/components/ui";
 import { getSpaceOptions, getSpaceOverview, listPurchases, type PurchaseFilters as Filters } from "@/lib/data";
-import { formatAmount } from "@/lib/money";
+import { Money } from "@/components/money";
+import { PrivacyToggle } from "@/components/privacy-toggle";
 import { FootOffset } from "@/components/foot-offset";
 import { PageSkeleton } from "../skeletons";
 import { PurchaseFilters } from "./filters";
@@ -67,6 +68,8 @@ async function Purchases({ params, searchParams }: Props) {
             </Link>
             <h1 className="mt-3 text-title font-extrabold">Purchases</h1>
           </div>
+          <div className="flex shrink-0 items-center gap-1.5">
+          <PrivacyToggle className="text-ink-2 hover:text-ink lg:hidden" />
           <a
             href={exportHref}
             className="inline-flex min-h-11 items-center gap-2 border border-line-strong bg-card px-3.5 font-semibold hover:border-ink"
@@ -74,6 +77,7 @@ async function Purchases({ params, searchParams }: Props) {
           >
             <Download size={17} aria-hidden /> <span>Export CSV</span>
           </a>
+          </div>
         </div>
 
         <div className="mt-5">
@@ -144,12 +148,12 @@ async function Purchases({ params, searchParams }: Props) {
                       {p.receiptCount > 0 && <ReceiptText size={16} aria-label="Has receipt" />}
                     </span>
                     <span className="text-right">
-                      <span className="num block font-extrabold">{formatAmount(p.group?.totalPaid ?? p.totalPaid)}</span>
+                      <Money minor={p.group?.totalPaid ?? p.totalPaid} className="num block font-extrabold" />
                       {(() => {
                         const paid = p.group?.totalPaid ?? p.totalPaid;
                         const before = p.group ? p.group.originalTotal : p.originalTotal;
                         return before != null && before > paid ? (
-                          <span className="num block text-[0.75rem] text-ink-3 line-through">{formatAmount(before)}</span>
+                          <Money minor={before} className="num block text-[0.75rem] text-ink-3 line-through" />
                         ) : null;
                       })()}
                     </span>
@@ -171,9 +175,13 @@ async function Purchases({ params, searchParams }: Props) {
               {filtered ? " shown" : ""}
             </span>
             <span className="flex items-baseline gap-3">
-              {totalSaved > 0 && <span className="num hidden text-ink-2 sm:inline">saved {formatAmount(totalSaved)}</span>}
+              {totalSaved > 0 && (
+                <span className="num hidden text-ink-2 sm:inline">
+                  saved <Money minor={totalSaved} />
+                </span>
+              )}
               <span className="num font-extrabold">
-                {formatAmount(totalPaid)} <span className="text-[0.75rem] font-semibold text-ink-3">{space.currency}</span>
+                <Money minor={totalPaid} /> <span className="text-[0.75rem] font-semibold text-ink-3">{space.currency}</span>
               </span>
             </span>
           </div>
