@@ -4,7 +4,18 @@ import { ImageOff } from "lucide-react";
 import { useCallback, useState } from "react";
 
 /** A purchase photo thumbnail that falls back to a placeholder if the file is missing. */
-export function Thumb({ photoId, alt, className = "" }: { photoId: string | null; alt: string; className?: string }) {
+export function Thumb({
+  photoId,
+  alt,
+  className = "",
+  fileBase = "/api/files",
+}: {
+  photoId: string | null;
+  alt: string;
+  className?: string;
+  /** Where files are served from: the owner's route, or a share link's. */
+  fileBase?: string;
+}) {
   const [failed, setFailed] = useState(false);
   // An image can fail before hydration attaches onError; catch that case on mount.
   const ref = useCallback((img: HTMLImageElement | null) => {
@@ -23,7 +34,7 @@ export function Thumb({ photoId, alt, className = "" }: { photoId: string | null
     // eslint-disable-next-line @next/next/no-img-element
     <img
       ref={ref}
-      src={`/api/files/${photoId}?size=thumb`}
+      src={`${fileBase}/${photoId}?size=thumb`}
       alt={alt}
       loading="lazy"
       decoding="async"

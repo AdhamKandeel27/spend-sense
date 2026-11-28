@@ -23,6 +23,7 @@ export function SpaceHeader({
   count,
   code,
   label = "Spent so far",
+  viewOnly = false,
 }: {
   space: SpaceLike;
   totalPaid: number;
@@ -30,22 +31,30 @@ export function SpaceHeader({
   count: number;
   code: string;
   label?: string;
+  /** For share links: no link back to the owner's spaces, no settings. */
+  viewOnly?: boolean;
 }) {
   return (
     <header className="relative bg-[var(--space-bg)] px-5 pt-[max(1.5rem,env(safe-area-inset-top))] pb-6 text-[var(--space-fg)] lg:px-10 lg:pt-10 lg:pb-8">
       <div className="mx-auto max-w-6xl">
         <div className="flex min-h-10 items-center gap-3">
-          <Link href="/spaces" className="label min-w-0 truncate hover:underline">
-            {space.name}
-          </Link>
+          {viewOnly ? (
+            <span className="label min-w-0 truncate">{space.name}</span>
+          ) : (
+            <Link href="/spaces" className="label min-w-0 truncate hover:underline">
+              {space.name}
+            </Link>
+          )}
           <span className="chip-code shrink-0 opacity-75">{code}</span>
-          <Link
-            href={`/spaces/${space.id}/settings`}
-            aria-label="Space settings"
-            className="-mr-2 ml-auto grid size-10 shrink-0 place-items-center opacity-80 hover:opacity-100 lg:hidden"
-          >
-            <Settings2 size={20} aria-hidden />
-          </Link>
+          {!viewOnly && (
+            <Link
+              href={`/spaces/${space.id}/settings`}
+              aria-label="Space settings"
+              className="-mr-2 ml-auto grid size-10 shrink-0 place-items-center opacity-80 hover:opacity-100 lg:hidden"
+            >
+              <Settings2 size={20} aria-hidden />
+            </Link>
+          )}
         </div>
         <p className="mt-6 text-[0.8125rem] font-medium opacity-80">{label}</p>
         <p className="mt-1 text-total font-extrabold tracking-[-0.025em] lg:text-[3.5rem]">
@@ -178,16 +187,29 @@ export function DeckLegend({ items, currency, limit = 4 }: { items: Breakdown[];
 
 export { Thumb };
 
-export function PurchaseTile({ spaceId, p, currency }: { spaceId: string; p: PurchaseCard; currency: string }) {
+export function PurchaseTile({
+  spaceId,
+  p,
+  currency,
+  href,
+  fileBase,
+}: {
+  spaceId: string;
+  p: PurchaseCard;
+  currency: string;
+  /** Overrides the owner's purchase link (used by share links). */
+  href?: string;
+  fileBase?: string;
+}) {
   const c = chipColor(p.categoryId ? p.categoryColor : -1);
   const pct = discountPercent(p.totalPaid, p.originalTotal);
   return (
     <Link
-      href={`/spaces/${spaceId}/purchases/${p.id}`}
+      href={href ?? `/spaces/${spaceId}/purchases/${p.id}`}
       className="group flex w-full flex-col border border-line bg-card transition-[border-color,box-shadow] duration-200 hover:border-line-strong hover:shadow-[var(--shadow-lift)]"
     >
       <div className="relative w-full">
-        <Thumb photoId={p.photoId} alt={p.name} className="aspect-square w-full" />
+        <Thumb photoId={p.photoId} alt={p.name} className="aspect-square w-full" fileBase={fileBase} />
         {pct != null && (
           <span className="num absolute top-2 left-2 bg-ochre px-1.5 py-0.5 text-[0.75rem] font-bold text-ink">−{pct}%</span>
         )}

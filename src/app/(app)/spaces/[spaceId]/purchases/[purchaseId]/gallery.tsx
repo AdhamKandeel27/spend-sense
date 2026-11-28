@@ -3,7 +3,7 @@
 import { ImageOff } from "lucide-react";
 import { useState } from "react";
 
-export function Gallery({ photoIds, alt }: { photoIds: string[]; alt: string }) {
+export function Gallery({ photoIds, alt, fileBase = "/api/files" }: { photoIds: string[]; alt: string; fileBase?: string }) {
   const [active, setActive] = useState(0);
   if (photoIds.length === 0) {
     return (
@@ -17,9 +17,9 @@ export function Gallery({ photoIds, alt }: { photoIds: string[]; alt: string }) 
   const current = photoIds[Math.min(active, photoIds.length - 1)];
   return (
     <div className="flex flex-col gap-1.5">
-      <a href={`/api/files/${current}`} target="_blank" rel="noreferrer" className="block bg-[#e6e6e1]">
+      <a href={`${fileBase}/${current}`} target="_blank" rel="noreferrer" className="block bg-[#e6e6e1]">
         {/* eslint-disable-next-line @next/next/no-img-element */}
-        <img src={`/api/files/${current}`} alt={alt} className="aspect-square w-full object-contain" />
+        <img src={`${fileBase}/${current}`} alt={alt} className="aspect-square w-full object-contain" />
       </a>
       {photoIds.length > 1 && (
         <ul className="grid grid-cols-5 gap-1.5">
@@ -33,7 +33,7 @@ export function Gallery({ photoIds, alt }: { photoIds: string[]; alt: string }) 
                 className={`block w-full outline-offset-2 ${i === active ? "outline-2 outline-ink" : "opacity-70 hover:opacity-100"}`}
               >
                 {/* eslint-disable-next-line @next/next/no-img-element */}
-                <img src={`/api/files/${id}?size=thumb`} alt="" className="aspect-square w-full object-cover" />
+                <img src={`${fileBase}/${id}?size=thumb`} alt="" className="aspect-square w-full object-cover" />
               </button>
             </li>
           ))}

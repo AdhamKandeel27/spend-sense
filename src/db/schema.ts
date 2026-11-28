@@ -220,6 +220,27 @@ export const attachments = pgTable(
   (t) => [index("attachments_purchase_idx").on(t.purchaseId)],
 );
 
+/**
+ * A view-only link to a space, made for one named viewer ("Mom"). Whoever
+ * has the token can see the space's purchases and photos without signing
+ * in. Deleting the row revokes the link.
+ */
+export const spaceShares = pgTable(
+  "space_shares",
+  {
+    id: uuid("id").primaryKey().defaultRandom(),
+    spaceId: uuid("space_id")
+      .notNull()
+      .references(() => spaces.id, { onDelete: "cascade" }),
+    name: text("name").notNull(),
+    /** 32 url-safe random characters (24 bytes); the secret in the link. */
+    token: text("token").notNull().unique(),
+    lastViewedAt: timestamp("last_viewed_at", { withTimezone: true }),
+    createdAt: timestamp("created_at", { withTimezone: true }).defaultNow().notNull(),
+  },
+  (t) => [index("space_shares_space_idx").on(t.spaceId)],
+);
+
 /* -------------------------------------------------------------------------- */
 /* Relations                                                                  */
 /* -------------------------------------------------------------------------- */
@@ -263,3 +284,4 @@ export type Room = typeof rooms.$inferSelect;
 export type Vendor = typeof vendors.$inferSelect;
 export type Purchase = typeof purchases.$inferSelect;
 export type Attachment = typeof attachments.$inferSelect;
+export type SpaceShare = typeof spaceShares.$inferSelect;

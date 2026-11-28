@@ -15,6 +15,9 @@ export function proxy(request: NextRequest) {
   const hasSession = Boolean(getSessionCookie(request));
   const isAuthPage = pathname === "/sign-in" || pathname === "/sign-up";
 
+  // View-only share links work without an account; the token is checked in the data layer.
+  if (pathname.startsWith("/share/")) return NextResponse.next();
+
   if (pathname === "/") {
     return NextResponse.redirect(new URL(hasSession ? "/spaces" : "/sign-in", request.url));
   }

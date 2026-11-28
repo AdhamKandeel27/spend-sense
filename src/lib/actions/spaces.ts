@@ -1,11 +1,12 @@
 "use server";
 
+import { randomBytes } from "node:crypto";
 import { and, count, eq, max } from "drizzle-orm";
 import { revalidatePath } from "next/cache";
 import { redirect } from "next/navigation";
 import { z } from "zod";
 import { db } from "@/db";
-import { categories, rooms, spaces } from "@/db/schema";
+import { categories, rooms, spaceShares, spaces } from "@/db/schema";
 import { getSpace, isUuid } from "@/lib/data";
 import { CHIP_COLORS, HOME_TEMPLATE, SPACE_COLORS } from "@/lib/palette";
 import { requireUser } from "@/lib/session";
@@ -174,6 +175,42 @@ export async function deleteRoom(spaceId: string, formData: FormData) {
   if (!isUuid(id)) return;
   await db.delete(rooms).where(and(eq(rooms.id, id), eq(rooms.spaceId, space.id)));
   revalidatePath(`/spaces/${space.id}`, "layout");
+}
+
+/* -------------------------------------------------------------------------- */
+/* Viewer links                                                               */
+/* -------------------------------------------------------------------------- */
+
+const MAX_SHARES = 50;
+
+export async function createShare(spaceId: string, _prev: FormState, formData: FormData): Promise<FormState> {
+  const space = await getSpace(spaceId);
+  const parsed = z
+    .string()
+    .trim()
+    .min(1, "Name who this link is for, like “Mom”.")
+    .max(60, "Keep it under 60 characters.")
+    .safeParse(formData.get("name"));
+  if (!parsed.success) return { fieldErrors: { name: parsed.error.issues[0].message }, values: formValues(formData) };
+
+  const [{ n }] = await db.select({ n: count() }).from(spaceShares).where(eq(spaceShares.spaceId, space.id));
+  if (n >= MAX_SHARES) return { fieldErrors: { name: `A space can have up to ${MAX_SHARES} viewer links.` } };
+
+  await db.insert(spaceShares).values({
+    spaceId: space.id,
+    name: parsed.data,
+    token: randomBytes(24).toString("base64url"),
+  });
+  revalidatePath(`/spaces/${space.id}/settings`);
+  return { ok: true };
+}
+
+export async function deleteShare(spaceId: string, formData: FormData) {
+  const space = await getSpace(spaceId);
+  const id = String(formData.get("id") ?? "");
+  if (!isUuid(id)) return;
+  await db.delete(spaceShares).where(and(eq(spaceShares.id, id), eq(spaceShares.spaceId, space.id)));
+  revalidatePath(`/spaces/${space.id}/settings`);
 }
 
 function flatten(error: z.ZodError) {

@@ -6,16 +6,24 @@ import { SpaceScope } from "@/components/space";
 import {
   addCategory,
   addRoom,
+  createShare,
   deleteCategory,
   deleteRoom,
+  deleteShare,
   deleteSpace,
   updateCategory,
   updateRoom,
   updateSpace,
 } from "@/lib/actions/spaces";
-import { getSpaceOptions, getUsageCounts } from "@/lib/data";
+import { getSpaceOptions, getUsageCounts, listShares } from "@/lib/data";
 import { PageSkeleton } from "../skeletons";
 import { DeleteSpaceForm, ListManager, SpaceDetailsForm } from "./settings-forms";
+import { ViewerLinks } from "./viewer-links";
+
+/** "3 Dec, 14:05" in Cairo time. */
+function formatWhen(d: Date) {
+  return d.toLocaleString("en-GB", { day: "numeric", month: "short", hour: "2-digit", minute: "2-digit", timeZone: "Africa/Cairo" });
+}
 
 export const metadata: Metadata = { title: "Space settings" };
 
@@ -31,7 +39,11 @@ export default function SettingsPage(props: Props) {
 
 async function Settings({ params }: Props) {
   const { spaceId } = await params;
-  const [{ space, categories, rooms }, usage] = await Promise.all([getSpaceOptions(spaceId), getUsageCounts(spaceId)]);
+  const [{ space, categories, rooms }, usage, shares] = await Promise.all([
+    getSpaceOptions(spaceId),
+    getUsageCounts(spaceId),
+    listShares(spaceId),
+  ]);
   const catN = usage.categories;
   const roomN = usage.rooms;
 
@@ -64,6 +76,24 @@ async function Settings({ params }: Props) {
             add={addRoom.bind(null, space.id)}
             update={updateRoom.bind(null, space.id)}
             remove={deleteRoom.bind(null, space.id)}
+          />
+        </Section>
+
+        <Section
+          title="Viewers"
+          description="Make a view-only link for someone and send it to them. They can browse this space's purchases, photos and prices without an account, but can't change anything or see receipts. Remove a link to cut off access."
+        >
+          <ViewerLinks
+            spaceName={space.name}
+            viewers={shares.map((s) => ({
+              id: s.id,
+              name: s.name,
+              token: s.token,
+              created: formatWhen(s.createdAt),
+              opened: s.lastViewedAt ? formatWhen(s.lastViewedAt) : null,
+            }))}
+            create={createShare.bind(null, space.id)}
+            remove={deleteShare.bind(null, space.id)}
           />
         </Section>
 

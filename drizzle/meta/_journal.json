@@ -15,6 +15,13 @@
       "when": 1795872306933,
       "tag": "0001_purchase_brand",
       "breakpoints": true
+    },
+    {
+      "idx": 2,
+      "version": "7",
+      "when": 1795873753013,
+      "tag": "0002_space_shares",
+      "breakpoints": true
     }
   ]
 }

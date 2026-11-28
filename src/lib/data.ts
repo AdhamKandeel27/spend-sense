@@ -2,7 +2,8 @@ import "server-only";
 import { and, asc, count, desc, eq, gte, ilike, inArray, isNotNull, isNull, lt, lte, or, sql, sum } from "drizzle-orm";
 import { notFound } from "next/navigation";
 import { db } from "@/db";
-import { attachments, categories, purchases, rooms, spaces, vendors } from "@/db/schema";
+import { after } from "next/server";
+import { attachments, categories, purchases, rooms, spaceShares, spaces, vendors, type Space } from "@/db/schema";
 import { requireUser } from "@/lib/session";
 
 /* -------------------------------------------------------------------------- */
@@ -114,8 +115,11 @@ export async function getUsageCounts(spaceId: string) {
 export type Breakdown ={ id: string | null; name: string; color: number; total: number; count: number };
 
 export async function getSpaceOverview(spaceId: string) {
-  const space = await getSpace(spaceId);
+  return overviewFor(await getSpace(spaceId), { recent: 8 });
+}
 
+/** Totals and breakdowns for a space already authorised by the caller (owner or share link). */
+async function overviewFor(space: Space, opts: { recent?: number } = {}) {
   const [totals] = await db
     .select({
       count: count(purchases.id),
@@ -152,7 +156,7 @@ export async function getSpaceOverview(spaceId: string) {
     .groupBy(rooms.id)
     .orderBy(desc(sql`coalesce(sum(${purchases.totalPaid}), 0)`));
 
-  const recent = await listPurchaseCards(space.id, { limit: 8 });
+  const recent = await listPurchaseCards(space.id, { limit: opts.recent });
   const number = await getSpaceNumber(space);
 
   return {
@@ -331,6 +335,88 @@ export async function listPurchasesForExport(spaceId: string, userId: string, fi
     : [];
   const extra = new Map(notes.map((n) => [n.id, n]));
   return { space, rows: rows.map((r) => ({ ...r, notes: extra.get(r.id)?.notes ?? null, unitPrice: extra.get(r.id)?.unitPrice ?? null })) };
+}
+
+/* -------------------------------------------------------------------------- */
+/* View-only share links                                                      */
+/* -------------------------------------------------------------------------- */
+
+export function isShareToken(v: string) {
+  return /^[A-Za-z0-9_-]{32}$/.test(v);
+}
+
+/** The owner's list of viewer links for a space. */
+export async function listShares(spaceId: string) {
+  const space = await getSpace(spaceId);
+  return db.select().from(spaceShares).where(eq(spaceShares.spaceId, space.id)).orderBy(desc(spaceShares.createdAt));
+}
+
+/**
+ * Resolves a share link to its space, or null when the link is unknown,
+ * revoked (row deleted) or the space is archived. This is the only gate for
+ * viewers, so everything shared goes through it.
+ */
+async function findShare(token: string) {
+  if (!isShareToken(token)) return null;
+  const [row] = await db
+    .select({ share: spaceShares, space: spaces })
+    .from(spaceShares)
+    .innerJoin(spaces, eq(spaces.id, spaceShares.spaceId))
+    .where(and(eq(spaceShares.token, token), isNull(spaces.archivedAt)))
+    .limit(1);
+  return row ?? null;
+}
+
+async function requireShare(token: string) {
+  const row = await findShare(token);
+  if (!row) notFound();
+  // Record "last opened" for the owner, at most once an hour, after the response.
+  const last = row.share.lastViewedAt?.getTime() ?? 0;
+  if (Date.now() - last > 60 * 60 * 1000) {
+    after(() => db.update(spaceShares).set({ lastViewedAt: new Date() }).where(eq(spaceShares.id, row.share.id)));
+  }
+  return row;
+}
+
+/** Everything the viewer's overview shows: totals, breakdown and every purchase. */
+export async function getSharedOverview(token: string) {
+  const { share, space } = await requireShare(token);
+  const overview = await overviewFor(space);
+  return { ...overview, viewerName: share.name };
+}
+
+/** One purchase for a viewer. Receipts are left out: they often carry addresses and phone numbers. */
+export async function getSharedPurchase(token: string, purchaseId: string) {
+  const { share, space } = await requireShare(token);
+  if (!isUuid(purchaseId)) notFound();
+  const purchase = await db.query.purchases.findFirst({
+    where: and(eq(purchases.id, purchaseId), eq(purchases.spaceId, space.id)),
+    with: {
+      category: true,
+      room: true,
+      vendor: true,
+      attachments: {
+        where: eq(attachments.kind, "photo"),
+        orderBy: [asc(attachments.position), asc(attachments.createdAt)],
+      },
+    },
+  });
+  if (!purchase) notFound();
+  return { space, purchase, viewerName: share.name };
+}
+
+/** Used by the share file route: a photo, only if it belongs to the link's space. */
+export async function getSharedPhoto(token: string, attachmentId: string) {
+  if (!isUuid(attachmentId)) return null;
+  const row = await findShare(token);
+  if (!row) return null;
+  const [found] = await db
+    .select({ attachment: attachments })
+    .from(attachments)
+    .innerJoin(purchases, eq(purchases.id, attachments.purchaseId))
+    .where(and(eq(attachments.id, attachmentId), eq(attachments.kind, "photo"), eq(purchases.spaceId, row.space.id)))
+    .limit(1);
+  return found?.attachment ?? null;
 }
 
 /* -------------------------------------------------------------------------- */
