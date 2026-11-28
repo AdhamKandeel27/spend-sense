@@ -3,7 +3,7 @@ import type { Metadata } from "next";
 import Link from "next/link";
 import { Suspense } from "react";
 import { SpaceScope } from "@/components/space";
-import { createPurchase } from "@/lib/actions/purchases";
+import { createPurchase, prepareUploads } from "@/lib/actions/purchases";
 import { getSpaceOptions } from "@/lib/data";
 import { todayInCairo } from "@/lib/dates";
 import { PageSkeleton } from "../../skeletons";
@@ -48,6 +48,7 @@ async function NewPurchase({ params, searchParams }: Props) {
         <PurchaseForm
           key={typeof added === "string" ? added : "new"}
           action={createPurchase.bind(null, space.id)}
+          prepareUploads={prepareUploads.bind(null, space.id)}
           mode="create"
           currency={space.currency}
           categories={categories.map((c) => ({ id: c.id, name: c.name, color: c.color }))}

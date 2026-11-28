@@ -32,7 +32,9 @@ services:
       - path: .env
         required: false
     environment:
-      DATABASE_URL: postgres://${POSTGRES_USER:-spendsense}:${POSTGRES_PASSWORD:-spendsense}@db:5432/${POSTGRES_DB:-spendsense}
+      # Uses Supabase when .env sets DATABASE_URL; otherwise the db service above.
+      DATABASE_URL: ${DATABASE_URL:-postgres://${POSTGRES_USER:-spendsense}:${POSTGRES_PASSWORD:-spendsense}@db:5432/${POSTGRES_DB:-spendsense}}
+      DATABASE_URL_DIRECT: ${DATABASE_URL_DIRECT:-}
       UPLOAD_DIR: /data/uploads
       RUN_MIGRATIONS: "true"
       BETTER_AUTH_URL: ${BETTER_AUTH_URL:-http://localhost:5000}

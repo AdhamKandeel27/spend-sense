@@ -9,13 +9,21 @@ import { getPurchase, getSpace, isIsoDate, isUuid } from "@/lib/data";
 import { processUpload, UploadError, type ProcessedFile } from "@/lib/images";
 import { parseAmount } from "@/lib/money";
 import { CHIP_COLORS } from "@/lib/palette";
-import { storage } from "@/lib/storage";
+import { isValidKey, readFile, storage } from "@/lib/storage";
+import {
+  extForType,
+  MAX_FILES,
+  MAX_UPLOAD_BYTES,
+  UPLOAD_SIZE_ERROR,
+  UPLOAD_TYPE_ERROR,
+  type UploadedFile,
+  type UploadKind,
+  type UploadRequest,
+} from "@/lib/uploads";
 import { type FormState, formValues } from "./state";
 
 type Space = Awaited<ReturnType<typeof getSpace>>;
 type Tx = Parameters<Parameters<typeof db.transaction>[0]>[0];
-
-const MAX_FILES = 10;
 
 type Parsed = {
   name: string;
@@ -143,21 +151,102 @@ function collectFiles(formData: FormData, field: string): File[] {
   return formData.getAll(field).filter((v): v is File => v instanceof File && v.size > 0);
 }
 
-type Stored = { kind: "photo" | "receipt"; file: File; processed: ProcessedFile };
+type Stored = { kind: UploadKind; file: File; processed: ProcessedFile };
 
-async function prepareFiles(formData: FormData): Promise<{ files?: Stored[]; error?: string }> {
-  const photos = collectFiles(formData, "photos");
-  const receipts = collectFiles(formData, "receipts");
-  if (photos.length + receipts.length > MAX_FILES) return { error: `Attach up to ${MAX_FILES} files at a time.` };
+const TOO_MANY_FILES = `Attach up to ${MAX_FILES} files at a time.`;
+
+/**
+ * Files the browser uploaded straight to storage (under incoming/<spaceId>/)
+ * and listed in the "uploads" field. Anything outside this space's incoming
+ * folder is ignored, so a crafted form can't pull in someone else's file.
+ */
+function incomingUploads(formData: FormData, spaceId: string): UploadedFile[] {
+  const raw = formData.get("uploads");
+  if (typeof raw !== "string" || !raw) return [];
+  let list: unknown;
   try {
+    list = JSON.parse(raw);
+  } catch {
+    return [];
+  }
+  if (!Array.isArray(list)) return [];
+  const prefix = `incoming/${spaceId}/`;
+  return list
+    .filter(
+      (u): u is UploadedFile =>
+        !!u &&
+        typeof u.key === "string" &&
+        u.key.startsWith(prefix) &&
+        isValidKey(u.key) &&
+        (u.kind === "photo" || u.kind === "receipt") &&
+        typeof u.type === "string" &&
+        typeof u.name === "string",
+    )
+    .slice(0, MAX_FILES);
+}
+
+/** The raw uploads are only an inbox: always remove them once the request is done. */
+async function clearIncoming(uploads: UploadedFile[]) {
+  await Promise.allSettled(uploads.map((u) => storage.delete(u.key)));
+}
+
+async function prepareFiles(
+  formData: FormData,
+  uploads: UploadedFile[],
+): Promise<{ files?: Stored[]; error?: string }> {
+  // Without direct uploads (local disk), files arrive with the form itself.
+  const inline = [
+    ...collectFiles(formData, "photos").map((file) => ({ kind: "photo" as const, file })),
+    ...collectFiles(formData, "receipts").map((file) => ({ kind: "receipt" as const, file })),
+  ];
+  if (inline.length + uploads.length > MAX_FILES) return { error: TOO_MANY_FILES };
+  try {
+    const inputs = [...inline];
+    for (const u of uploads) {
+      const body = await readFile(storage, u.key);
+      if (!body) return { error: "A file didn't finish uploading. Please add it again." };
+      inputs.push({ kind: u.kind, file: new File([new Uint8Array(body)], u.name.slice(0, 200), { type: u.type }) });
+    }
     const files: Stored[] = [];
-    for (const file of photos) files.push({ kind: "photo", file, processed: await processUpload(file, "photo") });
-    for (const file of receipts) files.push({ kind: "receipt", file, processed: await processUpload(file, "receipt") });
+    for (const { kind, file } of inputs) files.push({ kind, file, processed: await processUpload(file, kind) });
     return { files };
   } catch (err) {
     if (err instanceof UploadError) return { error: err.message };
     throw err;
   }
+}
+
+type PrepareUploadsResult = { slots: { key: string; url: string }[] } | { direct: true } | { error: string };
+
+/**
+ * Step one of saving a purchase with files: hands the browser one signed
+ * upload URL per file, so the files go straight to the private bucket and
+ * the form submit itself stays small. Returns { direct: true } when the
+ * storage can't do that (local disk); the form then attaches the files.
+ */
+export async function prepareUploads(spaceId: string, files: UploadRequest[]): Promise<PrepareUploadsResult> {
+  const space = await getSpace(spaceId);
+  if (!Array.isArray(files) || files.length === 0) return { slots: [] };
+  if (files.length > MAX_FILES) return { error: TOO_MANY_FILES };
+
+  const exts: string[] = [];
+  for (const f of files) {
+    const ext = typeof f?.type === "string" ? extForType(f.type) : null;
+    if (!ext || (f.kind !== "photo" && f.kind !== "receipt")) return { error: UPLOAD_TYPE_ERROR };
+    if (ext === "pdf" && f.kind !== "receipt") return { error: "Photos must be images. PDFs can be added as receipts." };
+    if (typeof f.size !== "number" || f.size <= 0) return { error: "The file is empty." };
+    if (f.size > MAX_UPLOAD_BYTES) return { error: UPLOAD_SIZE_ERROR };
+    exts.push(ext);
+  }
+
+  const slots = await Promise.all(
+    exts.map(async (ext) => {
+      const key = `incoming/${space.id}/${crypto.randomUUID()}.${ext}`;
+      return { key, url: await storage.createUploadUrl(key) };
+    }),
+  );
+  if (slots.some((s) => s.url === null)) return { direct: true };
+  return { slots: slots as { key: string; url: string }[] };
 }
 
 async function writeFiles(spaceId: string, purchaseId: string, files: Stored[], startPosition: number) {
@@ -200,12 +289,21 @@ async function writeFiles(spaceId: string, purchaseId: string, files: Stored[], 
 
 export async function createPurchase(spaceId: string, _prev: FormState, formData: FormData): Promise<FormState> {
   const space = await getSpace(spaceId);
+  const uploads = incomingUploads(formData, space.id);
+  try {
+    return await saveNewPurchase(space, formData, uploads);
+  } finally {
+    await clearIncoming(uploads);
+  }
+}
+
+async function saveNewPurchase(space: Space, formData: FormData, uploads: UploadedFile[]): Promise<FormState> {
   const values = formValues(formData);
 
   const { data, fieldErrors } = parsePurchase(formData);
   if (!data) return { fieldErrors, values, error: "Check the highlighted fields." };
 
-  const prepared = await prepareFiles(formData);
+  const prepared = await prepareFiles(formData, uploads);
   if (prepared.error) return { error: prepared.error, fieldErrors: { files: prepared.error }, values };
 
   const purchaseId = crypto.randomUUID();
@@ -246,12 +344,26 @@ export async function updatePurchase(
   formData: FormData,
 ): Promise<FormState> {
   const { space, purchase } = await getPurchase(spaceId, purchaseId);
+  const uploads = incomingUploads(formData, space.id);
+  try {
+    return await saveExistingPurchase(space, purchase, formData, uploads);
+  } finally {
+    await clearIncoming(uploads);
+  }
+}
+
+async function saveExistingPurchase(
+  space: Space,
+  purchase: Awaited<ReturnType<typeof getPurchase>>["purchase"],
+  formData: FormData,
+  uploads: UploadedFile[],
+): Promise<FormState> {
   const values = formValues(formData);
 
   const { data, fieldErrors } = parsePurchase(formData);
   if (!data) return { fieldErrors, values, error: "Check the highlighted fields." };
 
-  const prepared = await prepareFiles(formData);
+  const prepared = await prepareFiles(formData, uploads);
   if (prepared.error) return { error: prepared.error, fieldErrors: { files: prepared.error }, values };
 
   const removeIds = formData

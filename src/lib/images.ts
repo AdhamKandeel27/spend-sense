@@ -1,7 +1,6 @@
 import "server-only";
 import sharp from "sharp";
-
-export const MAX_UPLOAD_BYTES = 20 * 1024 * 1024;
+import { MAX_UPLOAD_BYTES, UPLOAD_SIZE_ERROR, UPLOAD_TYPE_ERROR } from "@/lib/uploads";
 
 const IMAGE_TYPES = new Set([
   "image/jpeg",
@@ -33,7 +32,7 @@ export async function processUpload(
   kind: "photo" | "receipt",
 ): Promise<ProcessedFile> {
   if (file.size === 0) throw new UploadError("The file is empty.");
-  if (file.size > MAX_UPLOAD_BYTES) throw new UploadError("Files must be 20 MB or smaller.");
+  if (file.size > MAX_UPLOAD_BYTES) throw new UploadError(UPLOAD_SIZE_ERROR);
 
   const buffer = Buffer.from(await file.arrayBuffer());
 
@@ -44,7 +43,7 @@ export async function processUpload(
   }
 
   if (file.type && !IMAGE_TYPES.has(file.type)) {
-    throw new UploadError("Use a JPG, PNG, WebP or HEIC image, or a PDF for receipts.");
+    throw new UploadError(UPLOAD_TYPE_ERROR);
   }
 
   // Receipts keep more pixels so small print stays legible.

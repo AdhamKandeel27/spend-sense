@@ -23,7 +23,7 @@ Your phone or computer
 - **The app** is the screens and the rules. It checks who you are before showing anything.
 - **The database** stores the details of every purchase.
 - **The files folder** stores the photos and receipts. Only you can open them: there are no public links.
-- All three run on your own computer, packaged so they start with one command.
+- For now the database and the files live on **Supabase** (free tier) and the app runs on **Vercel**. This is temporary until we move to our own server. The same code also runs fully on your own computer with Docker.
 
 ## Decisions we made, and why
 
@@ -36,7 +36,8 @@ Your phone or computer
 | **Two prices for discounts** (before / paid) | Shows exactly how much you saved, without needing extra photos. |
 | **EGP only, for now** | Matches today's need. The database already stores a currency per space for later. |
 | **Runs on your own computer, free** | No monthly costs during the trial phase. It can move to a server later without a rewrite. |
-| **Files stored on disk, not a cloud service** | Free and simple. The code is written so cloud storage can replace it later. |
+| **Supabase for the database and files, for now** | Free hosting while there's no server. We only use its Postgres and a private Storage bucket, so moving off it is a change of settings, not code. |
+| **Our own sign-in (Better Auth), not Supabase Auth** | Accounts live in our own tables, so they move with the database to any server. |
 | **One owner account** | It's a personal app. Sign-up closes after the first account. |
 | **Built in small milestones** | M1 covers the house build. New features come from what you notice while using it. |
 
@@ -69,7 +70,8 @@ Your phone or computer
 | `src/app/api/spaces/[id]/export` | CSV export (honours list filters) |
 | `src/lib/data.ts` | **Data access layer**: every read goes through `requireUser()` and checks space ownership |
 | `src/lib/actions/` | Server Actions (all writes), with validation |
-| `src/lib/storage/` | `FileStorage` interface plus a local-disk driver |
+| `src/lib/storage/` | `FileStorage` interface with a Supabase Storage driver (used when `NEXT_PUBLIC_SUPABASE_URL` and `SUPABASE_SECRET_KEY` are set) and a local-disk driver |
+| `src/lib/uploads.ts` | Upload rules shared by the browser and the server (types, 9 MB limit, 10 files) |
 | `src/lib/images.ts` | Upload pipeline: EXIF rotate, strip metadata (GPS), resize, WebP and a thumbnail; PDFs stored as-is |
 | `src/proxy.ts` | Optimistic redirect to sign-in (not a security boundary) |
 
@@ -88,9 +90,9 @@ user ─┬─< spaces ─┬─< categories
 
 ### Request flow (adding a purchase)
 
-1. The browser downscales the photos (canvas → JPEG, about 2000 px), then submits the form to a Server Action. The body limit is 25 MB.
-2. The action re-checks the session and space ownership, then validates the fields.
-3. sharp processes the files, which are written to storage.
+1. The browser downscales the photos (canvas → JPEG, about 2000 px).
+2. It asks the `prepareUploads` action for one signed upload URL per file (after an ownership check) and PUTs each file straight into `incoming/<spaceId>/` in the private bucket. This keeps requests under Vercel's 4.5 MB body limit. With local-disk storage there are no signed URLs, so the files go with the form (Server Action body limit 25 MB).
+3. The form is submitted with only the uploaded keys. The action re-checks the session and space ownership and validates the fields. It only accepts keys inside that space's `incoming/` folder, reads them back, and processes them with sharp. The final files are written to storage, and the `incoming/` copies are always deleted.
 4. Inside one DB transaction: find-or-create the category, room and vendor, insert the purchase, then insert the attachment rows.
 5. If anything fails, the written files are deleted. The cache is then revalidated and you're redirected to the purchase.
 
@@ -116,6 +118,14 @@ Cache Components is on. All user data is request-time (behind `<Suspense>`), and
 - Files are only reachable through the authenticated route: `Cache-Control: private` and `nosniff`. Storage keys are validated against a strict pattern to prevent path traversal.
 - The CSV export guards against formula injection.
 - `TRUSTED_ORIGINS` allows extra sign-in origins (for example a phone on the LAN).
+
+### Hosting on Supabase and Vercel (current)
+
+- `DATABASE_URL` is the Supabase **transaction pooler** (port 6543), used by the app. `DATABASE_URL_DIRECT` is the **session pooler** (port 5432), used by `pnpm db:migrate`, drizzle-kit and Docker's startup migrations. TLS is turned on automatically for `*.supabase.com` hosts.
+- Run migrations from your machine (`pnpm db:migrate`). Vercel builds don't run them.
+- The `attachments` bucket is private, with a 9 MB limit and image/PDF types only. Only the server uses the secret key.
+- On Vercel, `BETTER_AUTH_URL` defaults to the production domain and each deployment's own URL is trusted for sign-in.
+- Docker Compose uses Supabase too when `.env` sets `DATABASE_URL`. Without it, it falls back to the bundled `db` service.
 
 ### Moving off this machine later
 

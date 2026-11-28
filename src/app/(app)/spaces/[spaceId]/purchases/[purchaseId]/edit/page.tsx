@@ -3,7 +3,7 @@ import type { Metadata } from "next";
 import Link from "next/link";
 import { Suspense } from "react";
 import { SpaceScope } from "@/components/space";
-import { updatePurchase } from "@/lib/actions/purchases";
+import { prepareUploads, updatePurchase } from "@/lib/actions/purchases";
 import { getPurchase, getSpaceOptions } from "@/lib/data";
 import { toInputAmount } from "@/lib/money";
 import { PageSkeleton } from "../../../skeletons";
@@ -35,6 +35,7 @@ async function EditPurchase({ params }: Props) {
         <h1 className="mt-3 mb-6 text-title font-extrabold">Edit purchase</h1>
         <PurchaseForm
           action={updatePurchase.bind(null, space.id, p.id)}
+          prepareUploads={prepareUploads.bind(null, space.id)}
           mode="edit"
           currency={space.currency}
           categories={options.categories.map((c) => ({ id: c.id, name: c.name, color: c.color }))}

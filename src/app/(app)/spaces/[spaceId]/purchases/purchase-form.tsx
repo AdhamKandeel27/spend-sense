@@ -2,10 +2,19 @@
 
 import { Camera, FileText, ImagePlus, Loader2, ReceiptText, Undo2, X } from "lucide-react";
 import Link from "next/link";
-import { useActionState, useEffect, useId, useMemo, useRef, useState } from "react";
+import { startTransition, useActionState, useEffect, useId, useMemo, useRef, useState } from "react";
 import { Button, Field } from "@/components/ui";
 import { compressImage } from "@/lib/compress-image";
 import { initialFormState, type FormState } from "@/lib/actions/state";
+import {
+  MAX_UPLOAD_BYTES,
+  UPLOAD_SIZE_ERROR,
+  UPLOAD_TYPE_ERROR,
+  uploadType,
+  type UploadedFile,
+  type UploadKind,
+  type UploadRequest,
+} from "@/lib/uploads";
 import { discountPercent, formatAmount, parseAmount } from "@/lib/money";
 import { chipCode, chipColor } from "@/lib/palette";
 
@@ -27,11 +36,15 @@ export type PurchaseDefaults = {
 };
 
 type Action = (prev: FormState, fd: FormData) => Promise<FormState>;
+type PrepareUploads = (
+  files: UploadRequest[],
+) => Promise<{ slots: { key: string; url: string }[] } | { direct: true } | { error: string }>;
 
 type Picked = { key: string; file: File; url: string | null };
 
 export function PurchaseForm({
   action,
+  prepareUploads,
   mode,
   currency,
   categories,
@@ -42,6 +55,7 @@ export function PurchaseForm({
   cancelHref,
 }: {
   action: Action;
+  prepareUploads: PrepareUploads;
   mode: "create" | "edit";
   currency: string;
   categories: Option[];
@@ -70,6 +84,8 @@ export function PurchaseForm({
   const [receipts, setReceipts] = useState<Picked[]>([]);
   const [removed, setRemoved] = useState<Set<string>>(new Set());
   const [processing, setProcessing] = useState(false);
+  const [uploading, setUploading] = useState(false);
+  const [fileError, setFileError] = useState<string | null>(null);
 
   const [qty, setQty] = useState(v.quantity ?? "1");
   const [unitPrice, setUnitPrice] = useState(v.unitPrice ?? "");
@@ -108,35 +124,106 @@ export function PurchaseForm({
   const originalMinor = parseAmount(original);
   const pct = effectiveTotal != null ? discountPercent(effectiveTotal, originalMinor) : null;
 
-  async function pick(files: FileList | null, kind: "photo" | "receipt") {
+  async function pick(files: FileList | null, kind: UploadKind) {
     if (!files?.length) return;
     setProcessing(true);
+    setFileError(null);
     const next: Picked[] = [];
+    let rejected: string | null = null;
     for (const file of Array.from(files)) {
       const out = file.type === "application/pdf" ? file : await compressImage(file, kind === "receipt" ? 2600 : 2000);
+      const type = uploadType(out);
+      if (!type || (type === "application/pdf" && kind === "photo")) {
+        rejected = type ? "Photos must be images. PDFs can be added as receipts." : UPLOAD_TYPE_ERROR;
+        continue;
+      }
+      if (out.size > MAX_UPLOAD_BYTES) {
+        rejected = UPLOAD_SIZE_ERROR;
+        continue;
+      }
       const url = out.type.startsWith("image/") ? URL.createObjectURL(out) : null;
       if (url) urls.current.add(url);
       next.push({ key: `${file.name}-${file.size}-${crypto.randomUUID()}`, file: out, url });
     }
     (kind === "photo" ? setPhotos : setReceipts)((prev) => [...prev, ...next]);
+    setFileError(rejected);
     setProcessing(false);
   }
 
-  function submit(fd: FormData) {
-    for (const p of photos) fd.append("photos", p.file, p.file.name);
-    for (const r of receipts) fd.append("receipts", r.file, r.file.name);
+  /**
+   * Files go straight from the browser to storage first, then the form is
+   * submitted with only their keys. That keeps each request far under the
+   * hosting body limit. With local disk storage the server says "direct" and
+   * the files ride along with the form instead.
+   */
+  async function attachFiles(fd: FormData): Promise<boolean> {
+    const picked = [
+      ...photos.map((p) => ({ kind: "photo" as const, file: p.file })),
+      ...receipts.map((r) => ({ kind: "receipt" as const, file: r.file })),
+    ];
+    if (picked.length === 0) return true;
+
+    const types = picked.map((p) => uploadType(p.file) ?? p.file.type);
+    const res = await prepareUploads(picked.map((p, i) => ({ kind: p.kind, type: types[i], size: p.file.size })));
+    if ("error" in res) {
+      setFileError(res.error);
+      return false;
+    }
+    if ("direct" in res) {
+      for (const p of picked) fd.append(p.kind === "photo" ? "photos" : "receipts", p.file, p.file.name);
+      return true;
+    }
+
+    const results = await Promise.all(
+      res.slots.map((slot, i) =>
+        fetch(slot.url, { method: "PUT", headers: { "Content-Type": types[i] }, body: picked[i].file })
+          .then((r) => r.ok)
+          .catch(() => false),
+      ),
+    );
+    if (results.includes(false)) {
+      setFileError("A file couldn't be uploaded. Check your connection and try again.");
+      return false;
+    }
+    const uploaded: UploadedFile[] = res.slots.map((slot, i) => ({
+      kind: picked[i].kind,
+      key: slot.key,
+      name: picked[i].file.name,
+      type: types[i],
+    }));
+    fd.set("uploads", JSON.stringify(uploaded));
+    return true;
+  }
+
+  async function submit(e: React.FormEvent<HTMLFormElement>) {
+    e.preventDefault();
+    if (busy) return;
+    const submitter = (e.nativeEvent as SubmitEvent).submitter as HTMLElement | null;
+    const fd = new FormData(e.currentTarget, submitter);
     for (const id of removed) fd.append("removeAttachment", id);
     if (!totalTouched && computedTotal != null) fd.set("totalPaid", (computedTotal / 100).toFixed(2));
-    formAction(fd);
+
+    setFileError(null);
+    setUploading(true);
+    try {
+      if (!(await attachFiles(fd))) return;
+    } catch {
+      setFileError("A file couldn't be uploaded. Check your connection and try again.");
+      return;
+    } finally {
+      setUploading(false);
+    }
+    startTransition(() => formAction(fd));
   }
 
   const keptPhotos = existing.filter((a) => a.kind === "photo");
   const keptReceipts = existing.filter((a) => a.kind === "receipt");
   const selectedCategory = categories.find((c) => c.id === category);
-  const busy = pending || processing;
+  const busy = pending || processing || uploading;
+  const filesError = fileError ?? err.files;
 
   return (
-    <form action={submit} onInput={markEdited} className="grid gap-x-10 gap-y-6 lg:grid-cols-[minmax(0,5fr)_minmax(0,6fr)]" noValidate>
+    <form onSubmit={submit} onInput={markEdited} className="grid gap-x-10 gap-y-6 lg:grid-cols-[minmax(0,5fr)_minmax(0,6fr)]" noValidate>
       {/* ---------------- Media ---------------- */}
       <div className="flex flex-col gap-6 lg:sticky lg:top-8 lg:self-start">
         <section aria-labelledby="photos-label">
@@ -187,7 +274,11 @@ export function PurchaseForm({
             <FilePick label="Snap receipt" icon={Camera} accept="image/*" capture onPick={(f) => pick(f, "receipt")} />
             <FilePick label="Upload file" icon={ReceiptText} accept="image/*,application/pdf" multiple onPick={(f) => pick(f, "receipt")} />
           </div>
-          {err.files && <p className="mt-2 text-[0.8125rem] font-medium text-danger">{err.files}</p>}
+          {filesError && (
+            <p role="alert" className="mt-2 text-[0.8125rem] font-medium text-danger">
+              {filesError}
+            </p>
+          )}
         </section>
       </div>
 
@@ -422,9 +513,9 @@ export function PurchaseForm({
 
         <div className="flex flex-wrap items-center gap-2.5 pt-1">
           <Button type="submit" variant="primary" disabled={busy} name="intent" value="save" className="min-w-36">
-            {pending ? (
+            {pending || uploading ? (
               <>
-                <Loader2 size={18} className="animate-spin" aria-hidden /> Saving…
+                <Loader2 size={18} className="animate-spin" aria-hidden /> {uploading ? "Uploading…" : "Saving…"}
               </>
             ) : processing ? (
               "Preparing photos…"
