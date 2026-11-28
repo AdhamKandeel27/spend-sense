@@ -201,6 +201,7 @@ export function PurchaseTile({ spaceId, p, currency }: { spaceId: string; p: Pur
       <div aria-hidden className="flex h-1.5" style={{ background: c.bg }} />
       <div className="flex flex-1 flex-col gap-1 p-2.5">
         <p className="line-clamp-2 text-[0.875rem] leading-snug font-semibold">{p.name}</p>
+        {p.brand && <p className="truncate text-[0.75rem] text-ink-3">{p.brand}</p>}
         <p className="mt-auto flex flex-wrap items-baseline gap-x-1.5 pt-1">
           <span className="num text-[0.9375rem] font-extrabold">{formatAmount(p.totalPaid)}</span>
           {p.originalTotal != null && p.originalTotal > p.totalPaid && (

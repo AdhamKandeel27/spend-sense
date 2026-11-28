@@ -1,6 +1,6 @@
 "use client";
 
-import { Camera, FileText, ImagePlus, Loader2, ReceiptText, Undo2, X } from "lucide-react";
+import { Camera, FileText, ImagePlus, ReceiptText, Undo2, X } from "lucide-react";
 import Link from "next/link";
 import { startTransition, useActionState, useEffect, useId, useMemo, useRef, useState } from "react";
 import { Button, Field } from "@/components/ui";
@@ -23,6 +23,7 @@ type ExistingAttachment = { id: string; kind: "photo" | "receipt"; mimeType: str
 
 export type PurchaseDefaults = {
   name?: string;
+  brand?: string;
   purchasedOn?: string;
   quantity?: string;
   unit?: string;
@@ -50,6 +51,7 @@ export function PurchaseForm({
   categories,
   rooms,
   vendors,
+  brands,
   defaults = {},
   existing = [],
   cancelHref,
@@ -61,6 +63,7 @@ export function PurchaseForm({
   categories: Option[];
   rooms: Option[];
   vendors: Option[];
+  brands: string[];
   defaults?: PurchaseDefaults;
   existing?: ExistingAttachment[];
   cancelHref: string;
@@ -85,6 +88,8 @@ export function PurchaseForm({
   const [removed, setRemoved] = useState<Set<string>>(new Set());
   const [processing, setProcessing] = useState(false);
   const [uploading, setUploading] = useState(false);
+  // Which save button was tapped, so only that one shows the spinner.
+  const [intent, setIntent] = useState<"save" | "another">("save");
   const [fileError, setFileError] = useState<string | null>(null);
 
   const [qty, setQty] = useState(v.quantity ?? "1");
@@ -195,6 +200,7 @@ export function PurchaseForm({
     if (busy) return;
     const submitter = (e.nativeEvent as SubmitEvent).submitter as HTMLElement | null;
     const fd = new FormData(e.currentTarget, submitter);
+    setIntent(fd.get("intent") === "another" ? "another" : "save");
     for (const id of removed) fd.append("removeAttachment", id);
     if (!totalTouched && computedTotal != null) fd.set("totalPaid", (computedTotal / 100).toFixed(2));
 
@@ -293,6 +299,45 @@ export function PurchaseForm({
             autoComplete="off"
           />
         </Field>
+
+        {/* Who made it vs. where it was bought: a Bosch dishwasher from Cairo Sales. */}
+        <div className="grid grid-cols-2 gap-2.5 sm:gap-4">
+          <Field label="Brand" htmlFor="brand">
+            <input
+              id="brand"
+              name="brand"
+              defaultValue={v.brand}
+              list="brands"
+              placeholder="e.g. Bosch"
+              className="field"
+              maxLength={80}
+              autoComplete="off"
+            />
+            <datalist id="brands">
+              {brands.map((b) => (
+                <option key={b} value={b} />
+              ))}
+            </datalist>
+          </Field>
+
+          <Field label="Store" htmlFor="vendorName">
+            <input
+              id="vendorName"
+              name="vendorName"
+              defaultValue={v.vendorName}
+              list="vendors"
+              placeholder="Where you bought it"
+              className="field"
+              maxLength={80}
+              autoComplete="off"
+            />
+            <datalist id="vendors">
+              {vendors.map((x) => (
+                <option key={x.id} value={x.name} />
+              ))}
+            </datalist>
+          </Field>
+        </div>
 
         {/* Price block */}
         <div className="border border-line bg-card p-4">
@@ -458,24 +503,6 @@ export function PurchaseForm({
             )}
           </Field>
 
-          <Field label="Vendor / store" htmlFor="vendorName">
-            <input
-              id="vendorName"
-              name="vendorName"
-              defaultValue={v.vendorName}
-              list="vendors"
-              placeholder="Where you bought it"
-              className="field"
-              maxLength={80}
-              autoComplete="off"
-            />
-            <datalist id="vendors">
-              {vendors.map((x) => (
-                <option key={x.id} value={x.name} />
-              ))}
-            </datalist>
-          </Field>
-
           <Field label="Date" htmlFor="purchasedOn" error={err.purchasedOn}>
             <input
               id="purchasedOn"
@@ -507,21 +534,28 @@ export function PurchaseForm({
         )}
 
         <div className="flex flex-wrap items-center gap-2.5 pt-1">
-          <Button type="submit" variant="primary" disabled={busy} name="intent" value="save" className="min-w-36">
-            {pending || uploading ? (
-              <>
-                <Loader2 size={18} className="animate-spin" aria-hidden /> {uploading ? "Uploading…" : "Saving…"}
-              </>
-            ) : processing ? (
-              "Preparing photos…"
-            ) : mode === "create" ? (
-              "Save purchase"
-            ) : (
-              "Save changes"
-            )}
+          <Button
+            type="submit"
+            variant="primary"
+            disabled={busy}
+            pending={processing || ((pending || uploading) && intent === "save")}
+            pendingLabel={processing ? "Preparing photos…" : uploading ? "Uploading…" : "Saving…"}
+            name="intent"
+            value="save"
+            className="min-w-36"
+          >
+            {mode === "create" ? "Save purchase" : "Save changes"}
           </Button>
           {mode === "create" && (
-            <Button type="submit" variant="secondary" disabled={busy} name="intent" value="another">
+            <Button
+              type="submit"
+              variant="secondary"
+              disabled={busy}
+              pending={(pending || uploading) && intent === "another"}
+              pendingLabel={uploading ? "Uploading…" : "Saving…"}
+              name="intent"
+              value="another"
+            >
               Save &amp; add another
             </Button>
           )}

@@ -41,8 +41,10 @@ async function EditPurchase({ params }: Props) {
           categories={options.categories.map((c) => ({ id: c.id, name: c.name, color: c.color }))}
           rooms={options.rooms.map((r) => ({ id: r.id, name: r.name }))}
           vendors={options.vendors.map((v) => ({ id: v.id, name: v.name }))}
+          brands={options.brands}
           defaults={{
             name: p.name,
+            brand: p.brand ?? "",
             purchasedOn: p.purchasedOn,
             quantity: String(Number(p.quantity)),
             unit: p.unit ?? "",

@@ -103,7 +103,8 @@ async function PurchaseDetail({ params, searchParams }: Props) {
             <dl className="grid grid-cols-[auto_minmax(0,1fr)] gap-x-6 gap-y-3 text-[0.9375rem]">
               <Row label="Date">{formatDay(p.purchasedOn, { weekday: "short", day: "numeric", month: "long", year: "numeric" })}</Row>
               <Row label="Room / area">{p.room?.name ?? "—"}</Row>
-              <Row label="Vendor">
+              <Row label="Brand">{p.brand ?? "—"}</Row>
+              <Row label="Store">
                 {p.vendor ? (
                   <Link href={`/spaces/${space.id}/purchases?vendor=${p.vendor.id}`} className="underline">
                     {p.vendor.name}

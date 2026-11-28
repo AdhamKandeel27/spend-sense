@@ -1,5 +1,5 @@
 import "server-only";
-import { and, asc, count, desc, eq, gte, ilike, inArray, isNull, lt, lte, or, sql, sum } from "drizzle-orm";
+import { and, asc, count, desc, eq, gte, ilike, inArray, isNotNull, isNull, lt, lte, or, sql, sum } from "drizzle-orm";
 import { notFound } from "next/navigation";
 import { db } from "@/db";
 import { attachments, categories, purchases, rooms, spaces, vendors } from "@/db/schema";
@@ -67,12 +67,20 @@ export async function getSpace(spaceId: string) {
 
 export async function getSpaceOptions(spaceId: string) {
   const space = await getSpace(spaceId);
-  const [cats, rms, vnds] = await Promise.all([
+  const [cats, rms, vnds, brandRows] = await Promise.all([
     db.select().from(categories).where(eq(categories.spaceId, space.id)).orderBy(asc(categories.sortOrder), asc(categories.name)),
     db.select().from(rooms).where(eq(rooms.spaceId, space.id)).orderBy(asc(rooms.sortOrder), asc(rooms.name)),
     db.select().from(vendors).where(eq(vendors.ownerId, space.ownerId)).orderBy(asc(vendors.name)),
+    // Brands used across all of the owner's spaces, for the form's suggestions.
+    db
+      .selectDistinct({ brand: purchases.brand })
+      .from(purchases)
+      .innerJoin(spaces, eq(spaces.id, purchases.spaceId))
+      .where(and(eq(spaces.ownerId, space.ownerId), isNotNull(purchases.brand)))
+      .orderBy(asc(purchases.brand)),
   ]);
-  return { space, categories: cats, rooms: rms, vendors: vnds };
+  const brands = brandRows.map((b) => b.brand).filter((b): b is string => !!b);
+  return { space, categories: cats, rooms: rms, vendors: vnds, brands };
 }
 
 /** The space's position among the owner's spaces (1-based), shown as its chip code "SPACE 01". */
@@ -182,6 +190,7 @@ export type PurchaseFilters = {
 export type PurchaseCard = {
   id: string;
   name: string;
+  brand: string | null;
   purchasedOn: string;
   quantity: string;
   unit: string | null;
@@ -201,7 +210,9 @@ function filterConditions(spaceId: string, f: PurchaseFilters) {
   const q = f.q?.trim();
   if (q) {
     const like = `%${q.replace(/[%_\\]/g, "\\$&")}%`;
-    conds.push(or(ilike(purchases.name, like), ilike(purchases.notes, like), ilike(vendors.name, like))!);
+    conds.push(
+      or(ilike(purchases.name, like), ilike(purchases.brand, like), ilike(purchases.notes, like), ilike(vendors.name, like))!,
+    );
   }
   if (f.category === "none") conds.push(isNull(purchases.categoryId));
   else if (f.category && isUuid(f.category)) conds.push(eq(purchases.categoryId, f.category));
@@ -245,6 +256,7 @@ async function listPurchaseCards(
     .select({
       id: purchases.id,
       name: purchases.name,
+      brand: purchases.brand,
       purchasedOn: purchases.purchasedOn,
       quantity: purchases.quantity,
       unit: purchases.unit,

@@ -170,6 +170,8 @@ export const purchases = pgTable(
       .notNull()
       .references(() => spaces.id, { onDelete: "cascade" }),
     name: text("name").notNull(),
+    /** Who made it (Bosch), as opposed to the vendor: the store it was bought from. */
+    brand: text("brand"),
     categoryId: uuid("category_id").references(() => categories.id, { onDelete: "set null" }),
     roomId: uuid("room_id").references(() => rooms.id, { onDelete: "set null" }),
     vendorId: uuid("vendor_id").references(() => vendors.id, { onDelete: "set null" }),

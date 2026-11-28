@@ -49,7 +49,7 @@ export function PurchaseFilters({ rooms, vendors }: { rooms: Option[]; vendors: 
             type="search"
             value={q}
             onChange={(e) => setQ(e.target.value)}
-            placeholder="Search items, vendors, notes"
+            placeholder="Search items, brands, stores, notes"
             className="field pl-10"
             enterKeyHint="search"
           />
@@ -81,8 +81,8 @@ export function PurchaseFilters({ rooms, vendors }: { rooms: Option[]; vendors: 
             ))}
             <option value="none">No room</option>
           </SelectFilter>
-          <SelectFilter label="Vendor" value={params.get("vendor") ?? ""} onChange={(v) => update({ vendor: v })}>
-            <option value="">All vendors</option>
+          <SelectFilter label="Store" value={params.get("vendor") ?? ""} onChange={(v) => update({ vendor: v })}>
+            <option value="">All stores</option>
             {vendors.map((v) => (
               <option key={v.id} value={v.id}>
                 {v.name}

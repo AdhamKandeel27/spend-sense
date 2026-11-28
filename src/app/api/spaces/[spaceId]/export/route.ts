@@ -29,9 +29,10 @@ export async function GET(request: Request, ctx: RouteContext<"/api/spaces/[spac
   const header = [
     "Date",
     "Item",
+    "Brand",
     "Category",
     "Room / area",
-    "Vendor",
+    "Store",
     "Quantity",
     "Unit",
     "Unit price",
@@ -45,6 +46,7 @@ export async function GET(request: Request, ctx: RouteContext<"/api/spaces/[spac
     [
       r.purchasedOn,
       r.name,
+      r.brand ?? "",
       r.categoryName ?? "",
       r.roomName ?? "",
       r.vendorName ?? "",

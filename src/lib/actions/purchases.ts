@@ -27,6 +27,7 @@ type Tx = Parameters<Parameters<typeof db.transaction>[0]>[0];
 
 type Parsed = {
   name: string;
+  brand: string | null;
   purchasedOn: string;
   quantity: string;
   unit: string | null;
@@ -86,6 +87,7 @@ function parsePurchase(formData: FormData): { data?: Parsed; fieldErrors?: Recor
 
   const data: Parsed = {
     name,
+    brand: str("brand").slice(0, 80) || null,
     purchasedOn,
     quantity: String(qty),
     unit: str("unit").slice(0, 20) || null,
@@ -301,6 +303,7 @@ async function saveNewPurchase(space: Space, formData: FormData, uploads: Upload
         id: purchaseId,
         spaceId: space.id,
         name: data.name,
+        brand: data.brand,
         purchasedOn: data.purchasedOn,
         quantity: data.quantity,
         unit: data.unit,
@@ -367,6 +370,7 @@ async function saveExistingPurchase(
         .update(purchases)
         .set({
           name: data.name,
+          brand: data.brand,
           purchasedOn: data.purchasedOn,
           quantity: data.quantity,
           unit: data.unit,

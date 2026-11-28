@@ -120,7 +120,7 @@ async function Purchases({ params, searchParams }: Props) {
                     <div className="min-w-0">
                       <p className="truncate font-semibold">{p.name}</p>
                       <p className="truncate text-[0.8125rem] text-ink-3">
-                        {[p.vendorName, formatDate(p.purchasedOn)].filter(Boolean).join(" · ")}
+                        {[p.brand, p.vendorName, formatDate(p.purchasedOn)].filter(Boolean).join(" · ")}
                       </p>
                     </div>
                     <span className="hidden min-w-0 text-[0.8125rem] sm:block">

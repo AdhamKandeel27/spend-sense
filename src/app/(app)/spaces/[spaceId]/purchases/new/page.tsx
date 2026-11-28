@@ -24,7 +24,7 @@ export default function NewPurchasePage(props: Props) {
 async function NewPurchase({ params, searchParams }: Props) {
   const { spaceId } = await params;
   const { added } = await searchParams;
-  const { space, categories, rooms, vendors } = await getSpaceOptions(spaceId);
+  const { space, categories, rooms, vendors, brands } = await getSpaceOptions(spaceId);
 
   return (
     <SpaceScope space={space}>
@@ -54,6 +54,7 @@ async function NewPurchase({ params, searchParams }: Props) {
           categories={categories.map((c) => ({ id: c.id, name: c.name, color: c.color }))}
           rooms={rooms.map((r) => ({ id: r.id, name: r.name }))}
           vendors={vendors.map((v) => ({ id: v.id, name: v.name }))}
+          brands={brands}
           defaults={{ purchasedOn: todayInCairo(), quantity: "1" }}
           cancelHref={`/spaces/${space.id}`}
         />
