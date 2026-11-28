@@ -53,8 +53,8 @@ export function NewSpaceForm({ defaultName = "" }: { defaultName?: string }) {
         </label>
       </fieldset>
       {state.error && <p role="alert" className="text-danger">{state.error}</p>}
-      <Button type="submit" variant="primary" disabled={pending} className="self-start">
-        {pending ? "Creating…" : "Create space"}
+      <Button type="submit" variant="primary" pending={pending} pendingLabel="Creating…" className="self-start">
+        Create space
       </Button>
     </form>
   );

@@ -89,7 +89,7 @@ async function SpacesList() {
 
 function SpacesSkeleton() {
   return (
-    <div aria-busy className="animate-pulse">
+    <div aria-busy aria-label="Loading" className="loading-placeholder">
       <div className="h-7 w-40 bg-line" />
       <div className="mt-6 grid gap-4 sm:grid-cols-2">
         <div className="h-40 bg-line" />

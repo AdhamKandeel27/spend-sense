@@ -5,6 +5,12 @@ const nextConfig: NextConfig = {
   output: "standalone",
   cacheComponents: true,
   partialPrefetching: true,
+  experimental: {
+    // Keep visited pages in the client cache for a minute, so switching
+    // between tabs shows the page straight away instead of a skeleton.
+    // Saving anything calls revalidatePath, which clears this cache.
+    staleTimes: { dynamic: 60 },
+  },
   // sharp ships native binaries; keep it out of the server bundle.
   serverExternalPackages: ["sharp"],
   // No Server Action body limit override: files go straight from the browser

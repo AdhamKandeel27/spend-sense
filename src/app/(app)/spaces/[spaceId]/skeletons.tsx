@@ -1,6 +1,6 @@
 export function OverviewSkeleton() {
   return (
-    <div aria-busy aria-label="Loading" className="animate-pulse">
+    <div aria-busy aria-label="Loading" className="loading-placeholder">
       <div className="h-56 bg-[#cfd3cd] lg:h-64" />
       <div className="mx-auto max-w-6xl px-5 pt-7 lg:px-10">
         <div className="h-16 bg-line" />
@@ -17,7 +17,7 @@ export function OverviewSkeleton() {
 
 export function PageSkeleton() {
   return (
-    <div aria-busy aria-label="Loading" className="mx-auto max-w-3xl animate-pulse px-5 pt-8 lg:px-10">
+    <div aria-busy aria-label="Loading" className="mx-auto max-w-3xl loading-placeholder px-5 pt-8 lg:px-10">
       <div className="h-6 w-40 bg-line" />
       <div className="mt-6 h-12 bg-line" />
       <div className="mt-4 h-12 bg-line" />

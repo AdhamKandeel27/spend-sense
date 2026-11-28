@@ -9,7 +9,7 @@ export default function AccountPage() {
   return (
     <main className="pb-shell mx-auto w-full max-w-lg px-5 pt-[max(1.5rem,env(safe-area-inset-top))] lg:pt-10">
       <h1 className="text-title font-extrabold">Account</h1>
-      <Suspense fallback={<div className="mt-6 h-32 animate-pulse bg-line" />}>
+      <Suspense fallback={<div className="mt-6 h-32 loading-placeholder bg-line" />}>
         <AccountDetails />
       </Suspense>
       <section className="mt-10">

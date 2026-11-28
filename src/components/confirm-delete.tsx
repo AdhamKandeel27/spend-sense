@@ -35,11 +35,12 @@ export function ConfirmDelete({
         <Button
           variant="danger"
           className="bg-danger !text-white hover:brightness-110"
-          disabled={pending}
+          pending={pending}
+          pendingLabel="Deleting…"
           onClick={() => start(onConfirm)}
           autoFocus
         >
-          {pending ? "Deleting…" : confirmLabel}
+          {confirmLabel}
         </Button>
         <Button variant="ghost" onClick={() => setArmed(false)} disabled={pending}>
           Keep it

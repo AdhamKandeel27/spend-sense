@@ -72,8 +72,14 @@ export function AuthForm({ mode }: { mode: "sign-in" | "sign-up" }) {
         </p>
       )}
 
-      <Button type="submit" variant="primary" disabled={pending} className="w-full">
-        {pending ? "One moment…" : mode === "sign-in" ? "Sign in" : "Create account"}
+      <Button
+        type="submit"
+        variant="primary"
+        pending={pending}
+        pendingLabel={mode === "sign-in" ? "Signing in…" : "Creating account…"}
+        className="w-full"
+      >
+        {mode === "sign-in" ? "Sign in" : "Create account"}
       </Button>
 
       <p className="text-[0.875rem] text-ink-2">

@@ -12,7 +12,8 @@ export function SignOutButton() {
   return (
     <Button
       variant="secondary"
-      disabled={pending}
+      pending={pending}
+      pendingLabel="Signing out…"
       onClick={async () => {
         setPending(true);
         await signOut();
@@ -20,7 +21,7 @@ export function SignOutButton() {
         router.refresh();
       }}
     >
-      <LogOut size={16} aria-hidden /> {pending ? "Signing out…" : "Sign out"}
+      <LogOut size={16} aria-hidden /> Sign out
     </Button>
   );
 }

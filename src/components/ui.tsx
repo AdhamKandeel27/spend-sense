@@ -5,7 +5,7 @@ import { chipCode, chipColor } from "@/lib/palette";
 type Variant = "primary" | "secondary" | "ghost" | "danger" | "space";
 
 const base =
-  "inline-flex items-center justify-center gap-2 font-semibold select-none whitespace-nowrap transition-[background-color,color,border-color,box-shadow,transform] duration-150 ease-[var(--ease-out-expo)] active:translate-y-px disabled:pointer-events-none disabled:opacity-50";
+  "inline-flex items-center justify-center gap-2 font-semibold select-none whitespace-nowrap transition-[background-color,color,border-color,box-shadow,transform,opacity] duration-150 ease-[var(--ease-out-expo)] active:translate-y-px disabled:pointer-events-none [&:disabled:not([data-pending])]:opacity-50";
 
 const variants: Record<Variant, string> = {
   // The pill is reserved for the primary action.
@@ -18,12 +18,40 @@ const variants: Record<Variant, string> = {
     "border border-danger/60 text-danger bg-transparent hover:bg-danger hover:text-white focus-visible:bg-danger focus-visible:text-white px-4 min-h-11",
 };
 
+/**
+ * `pending` keeps the button at full colour and the same width: the label
+ * and the busy state (spinner + `pendingLabel`) share one grid cell, so the
+ * button is sized for whichever is wider and never jumps when you tap it.
+ */
 export function Button({
   variant = "secondary",
   className = "",
+  pending = false,
+  pendingLabel,
+  disabled,
+  children,
   ...props
-}: ComponentProps<"button"> & { variant?: Variant }) {
-  return <button className={`${base} ${variants[variant]} ${className}`} {...props} />;
+}: ComponentProps<"button"> & { variant?: Variant; pending?: boolean; pendingLabel?: string }) {
+  return (
+    <button
+      className={`${base} ${variants[variant]} ${className}`}
+      disabled={disabled || pending}
+      aria-busy={pending || undefined}
+      data-pending={pending || undefined}
+      {...props}
+    >
+      <span className="grid">
+        <span className={`inline-flex items-center justify-center gap-2 [grid-area:1/1] ${pending ? "invisible" : ""}`}>{children}</span>
+        <span
+          aria-hidden={!pending}
+          className={`inline-flex items-center justify-center gap-2 [grid-area:1/1] ${pending ? "" : "invisible"}`}
+        >
+          {pending && <span className="btn-spinner" />}
+          {pendingLabel ?? <span className="sr-only">Working…</span>}
+        </span>
+      </span>
+    </button>
+  );
 }
 
 export function ButtonLink({

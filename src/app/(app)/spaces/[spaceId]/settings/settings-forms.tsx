@@ -56,8 +56,8 @@ export function SpaceDetailsForm({
         </div>
       </fieldset>
       <div className="flex items-center gap-3">
-        <Button type="submit" variant="primary" disabled={pending}>
-          {pending ? "Saving…" : "Save"}
+        <Button type="submit" variant="primary" pending={pending} pendingLabel="Saving…">
+          Save
         </Button>
         {state.ok && !pending && (
           <span role="status" className="inline-flex items-center gap-1.5 text-[0.875rem] font-medium text-ok">
@@ -114,7 +114,7 @@ export function ListManager({
           className="field"
           aria-invalid={!!state.fieldErrors?.name}
         />
-        <Button type="submit" variant="secondary" disabled={pending} className="shrink-0">
+        <Button type="submit" variant="secondary" pending={pending} className="shrink-0">
           <Plus size={16} aria-hidden /> Add
         </Button>
       </form>
@@ -219,8 +219,8 @@ export function DeleteSpaceForm({ action, name }: { action: Action; name: string
       <Field label={`Type “${name}” to confirm`} htmlFor="confirm" error={state.fieldErrors?.confirm}>
         <input id="confirm" name="confirm" autoComplete="off" className="field" aria-invalid={!!state.fieldErrors?.confirm} />
       </Field>
-      <Button type="submit" variant="danger" disabled={pending} className="self-start">
-        <Trash2 size={16} aria-hidden /> {pending ? "Deleting…" : "Delete this space and everything in it"}
+      <Button type="submit" variant="danger" pending={pending} pendingLabel="Deleting…" className="self-start">
+        <Trash2 size={16} aria-hidden /> Delete this space and everything in it
       </Button>
     </form>
   );
